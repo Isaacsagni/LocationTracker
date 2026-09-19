@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Location Dashboard</title>
@@ -51,7 +52,9 @@
         font-weight: bold;
       }
 
-      /* STATISTICS */
+      /* =========================
+       STATISTICS
+       ========================= */
 
       .stats {
         display: grid;
@@ -79,7 +82,9 @@
         font-weight: bold;
       }
 
-      /* DEVICE OVERVIEW */
+      /* =========================
+       DEVICE INTELLIGENCE
+       ========================= */
 
       .device-grid {
         display: grid;
@@ -116,7 +121,9 @@
         font-weight: bold;
       }
 
-      /* MAP */
+      /* =========================
+       MAP
+       ========================= */
 
       .map-card {
         background: white;
@@ -159,7 +166,9 @@
         font-weight: bold;
       }
 
-      /* TABLE */
+      /* =========================
+       TABLE
+       ========================= */
 
       .table-card {
         background: white;
@@ -235,7 +244,9 @@
         color: #64748b;
       }
 
-      /* LOGOUT */
+      /* =========================
+       LOGOUT
+       ========================= */
 
       .logout-area {
         margin-top: 20px;
@@ -258,7 +269,9 @@
         background: #b91c1c;
       }
 
-      /* IDLE WARNING */
+      /* =========================
+       IDLE WARNING
+       ========================= */
 
       .idle-warning {
         display: none;
@@ -276,9 +289,13 @@
         font-weight: bold;
       }
 
-      @media (max-width: 1000px) {
+      /* =========================
+       RESPONSIVE
+       ========================= */
+
+      @media (max-width: 1100px) {
         .stats {
-          grid-template-columns: repeat(2, 1fr);
+          grid-template-columns: repeat(3, 1fr);
         }
 
         .device-grid {
@@ -286,7 +303,13 @@
         }
       }
 
-      @media (max-width: 600px) {
+      @media (max-width: 700px) {
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 500px) {
         .stats {
           grid-template-columns: 1fr;
         }
@@ -315,63 +338,80 @@
   </head>
 
   <body>
+    <!-- =========================
+       IDLE WARNING
+       ========================= -->
+
     <div id="idleWarning" class="idle-warning">
       You will be logged out soon because of inactivity.
     </div>
 
+    <!-- =========================
+       HEADER
+       ========================= -->
+
     <header class="header">
       <h1>📍 Location Dashboard</h1>
+
       <p>Authorized location-sharing records and device activity</p>
     </header>
 
     <div class="container">
-      <!-- ========================= -->
-      <!-- MAIN STATISTICS -->
-      <!-- ========================= -->
+      <!-- =========================
+         DASHBOARD OVERVIEW
+         ========================= -->
 
       <div class="section-heading">Dashboard Overview</div>
 
       <div class="stats">
         <div class="stat-card">
           <div class="stat-title">TOTAL LOCATIONS</div>
+
           <div class="stat-value">{{ total_locations }}</div>
         </div>
 
         <div class="stat-card">
           <div class="stat-title">📱 PHONES</div>
+
           <div class="stat-value">{{ total_phones }}</div>
         </div>
 
         <div class="stat-card">
           <div class="stat-title">💻 COMPUTERS</div>
+
           <div class="stat-value">{{ total_computers }}</div>
         </div>
 
         <div class="stat-card">
           <div class="stat-title">📲 TABLETS</div>
+
           <div class="stat-value">{{ total_tablets }}</div>
         </div>
 
         <div class="stat-card">
           <div class="stat-title">🔗 OTHER DEVICES</div>
+
           <div class="stat-value">{{ total_other_devices }}</div>
         </div>
       </div>
 
-      <!-- ========================= -->
-      <!-- DEVICE INTELLIGENCE -->
-      <!-- ========================= -->
+      <!-- =========================
+         DEVICE INTELLIGENCE
+         ========================= -->
 
       <div class="section-heading">Device Intelligence</div>
 
       <div class="device-grid">
+        <!-- DEVICE TYPES -->
+
         <div class="device-card">
           <h3>📱 Device Types</h3>
 
           {% if device_statistics %} {% for item in device_statistics %}
 
           <div class="device-row">
-            <span>{{ item.device_type }}</span>
+            <span> {{ item.device_type }} </span>
+
             <span class="device-count"> {{ item.total }} </span>
           </div>
 
@@ -382,13 +422,16 @@
           {% endif %}
         </div>
 
+        <!-- BROWSERS -->
+
         <div class="device-card">
           <h3>🌐 Browsers</h3>
 
           {% if browser_statistics %} {% for item in browser_statistics %}
 
           <div class="device-row">
-            <span>{{ item.browser }}</span>
+            <span> {{ item.browser }} </span>
+
             <span class="device-count"> {{ item.total }} </span>
           </div>
 
@@ -399,6 +442,8 @@
           {% endif %}
         </div>
 
+        <!-- OPERATING SYSTEMS -->
+
         <div class="device-card">
           <h3>💻 Operating Systems</h3>
 
@@ -406,7 +451,8 @@
           operating_system_statistics %}
 
           <div class="device-row">
-            <span>{{ item.operating_system }}</span>
+            <span> {{ item.operating_system }} </span>
+
             <span class="device-count"> {{ item.total }} </span>
           </div>
 
@@ -418,9 +464,9 @@
         </div>
       </div>
 
-      <!-- ========================= -->
-      <!-- MAP -->
-      <!-- ========================= -->
+      <!-- =========================
+         MAP
+         ========================= -->
 
       <div class="map-card">
         <div class="section-title">Location Map</div>
@@ -486,12 +532,12 @@
         {% endif %}
       </div>
 
-      <!-- ========================= -->
-      <!-- LOCATION HISTORY -->
-      <!-- ========================= -->
+      <!-- =========================
+         LOCATION & DEVICE HISTORY
+         ========================= -->
 
       <div class="table-card">
-        <div class="table-title">Location & Device History</div>
+        <div class="table-title">Location &amp; Device History</div>
 
         {% if locations %}
 
@@ -500,16 +546,27 @@
             <thead>
               <tr>
                 <th>ID</th>
+
                 <th>Device</th>
+
                 <th>Operating System</th>
+
                 <th>Browser</th>
+
                 <th>Area</th>
+
                 <th>County</th>
+
                 <th>Country</th>
+
                 <th>Latitude</th>
+
                 <th>Longitude</th>
+
                 <th>Accuracy</th>
+
                 <th>Time</th>
+
                 <th>Session</th>
               </tr>
             </thead>
@@ -522,10 +579,7 @@
 
                 <td>
                   <span class="device-badge">
-                    {% if location.device_type == "Phone" %} 📱 Phone {% elif
-                    location.device_type == "Computer" %} 💻 Computer {% elif
-                    location.device_type == "Tablet" %} 📲 Tablet {% else %} 🔗
-                    {{ location.device_type|default:"Unknown" }} {% endif %}
+                    {{ location.device_type|default:"Unknown" }}
                   </span>
                 </td>
 
@@ -582,9 +636,9 @@
         {% endif %}
       </div>
 
-      <!-- ========================= -->
-      <!-- LOGOUT -->
-      <!-- ========================= -->
+      <!-- =========================
+         LOGOUT
+         ========================= -->
 
       <div class="logout-area">
         <form method="post" action="{% url 'logout' %}" id="logoutForm">
@@ -595,7 +649,9 @@
       </div>
     </div>
 
-    <!-- LEAFLET -->
+    <!-- =========================
+       LEAFLET
+       ========================= -->
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -603,39 +659,37 @@
 
       const locations = [
 
-      {% for location in locations %}
+        {% for location in locations %}
 
-      {
-        id: {{ location.id }},
+          {
+            id: {{ location.id }},
 
-        latitude: {{ location.latitude }},
+            latitude: {{ location.latitude }},
 
-        longitude: {{ location.longitude }},
+            longitude: {{ location.longitude }},
 
-        area: "{{ location.area|escapejs }}",
+            area: "{{ location.area|escapejs }}",
 
-        county: "{{ location.county|escapejs }}",
+            county: "{{ location.county|escapejs }}",
 
-        country: "{{ location.country|escapejs }}",
+            country: "{{ location.country|escapejs }}",
 
-        accuracy: {{ location.accuracy }},
+            accuracy: {{ location.accuracy }},
 
-        device_type:
-          "{{ location.device_type|default:'Unknown'|escapejs }}",
+            device_type: "{{ location.device_type|default:'Unknown'|escapejs }}",
 
-        operating_system:
-          "{{ location.operating_system|default:'Unknown'|escapejs }}",
+            operating_system: "{{ location.operating_system|default:'Unknown'|escapejs }}",
 
-        browser:
-          "{{ location.browser|default:'Unknown'|escapejs }}",
+            browser: "{{ location.browser|default:'Unknown'|escapejs }}",
 
-        time:
-          "{{ location.device_timestamp|date:'d M Y, H:i:s' }}"
-      }
+            time: "{{ location.device_timestamp|date:'d M Y, H:i:s' }}"
+          }
 
-      {% if not forloop.last %},{% endif %}
+          {% if not forloop.last %}
+            ,
+          {% endif %}
 
-      {% endfor %}
+        {% endfor %}
 
       ];
 
@@ -643,15 +697,14 @@
       let map;
 
 
-      /*
-      ==================================================
-      MAP INITIALIZATION
-      ==================================================
-      */
+      /* =========================
+         MAP
+         ========================= */
 
       if (locations.length > 0) {
 
         const latest = locations[0];
+
 
         map = L.map("map").setView(
           [
@@ -666,21 +719,14 @@
           "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
           {
             maxZoom: 19,
-
-            attribution:
-              "Tiles &copy; Esri"
+            attribution: "Tiles &copy; Esri"
           }
         ).addTo(map);
 
 
-        /*
-        ================================================
-        LOCATION MARKERS
-        ================================================
-        */
-
         locations.forEach(
           function(location, index) {
+
 
             const marker = L.marker(
               [
@@ -690,10 +736,15 @@
             ).addTo(map);
 
 
-            const latestLabel =
-              index === 0
-                ? "<br><strong>⭐ Latest Location</strong>"
-                : "";
+            let latestLabel = "";
+
+
+            if (index === 0) {
+
+              latestLabel =
+                "<br><strong>⭐ Latest Location</strong>";
+
+            }
 
 
             marker.bindPopup(
@@ -751,14 +802,9 @@
               <strong>Time:</strong>
               ${location.time}
               `
+
             );
 
-
-            /*
-            ==============================================
-            ACCURACY CIRCLE
-            ==============================================
-            */
 
             L.circle(
               [
@@ -767,22 +813,15 @@
               ],
               {
                 radius: location.accuracy,
-
                 fillOpacity: 0.08,
-
                 weight: 1
               }
             ).addTo(map);
 
+
           }
         );
 
-
-        /*
-        ==============================================
-        LOCATION PATH
-        ==============================================
-        */
 
         if (locations.length > 1) {
 
@@ -811,11 +850,6 @@
 
       } else {
 
-        /*
-        ==============================================
-        EMPTY MAP
-        ==============================================
-        */
 
         map = L.map("map").setView(
           [-0.68, 34.79],
@@ -827,20 +861,16 @@
           "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
           {
             maxZoom: 19,
-
-            attribution:
-              "Tiles &copy; Esri"
+            attribution: "Tiles &copy; Esri"
           }
         ).addTo(map);
 
       }
 
 
-      /*
-      ==================================================
-      1 MINUTE IDLE LOGOUT
-      ==================================================
-      */
+      /* =========================
+         IDLE LOGOUT
+         ========================= */
 
       const IDLE_LIMIT = 60 * 1000;
 
