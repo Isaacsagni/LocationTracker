@@ -1,0 +1,1421 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Precision Location Sharing</title>
+
+    <!-- Leaflet -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f4f7fb;
+        color: #172033;
+      }
+
+      .container {
+        width: min(1100px, 94%);
+        margin: 30px auto;
+      }
+
+      .card {
+        background: white;
+        border-radius: 18px;
+        padding: 28px;
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
+        margin-bottom: 22px;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      .header h1 {
+        margin: 0 0 10px;
+        font-size: 30px;
+      }
+
+      .header p {
+        margin: 0;
+        color: #667085;
+        line-height: 1.6;
+      }
+
+      .consent {
+        background: #eef6ff;
+        border-left: 5px solid #2563eb;
+        padding: 16px;
+        border-radius: 10px;
+        line-height: 1.6;
+        margin-bottom: 22px;
+      }
+
+      .search-area {
+        text-align: center;
+      }
+
+      .radar {
+        width: 150px;
+        height: 150px;
+        margin: 15px auto 25px;
+        border-radius: 50%;
+        position: relative;
+        background: radial-gradient(
+          circle,
+          rgba(37, 99, 235, 0.18) 0%,
+          rgba(37, 99, 235, 0.08) 45%,
+          rgba(37, 99, 235, 0.03) 70%,
+          transparent 71%
+        );
+        border: 2px solid rgba(37, 99, 235, 0.25);
+        overflow: hidden;
+      }
+
+      .radar::before {
+        content: "";
+        position: absolute;
+        width: 50%;
+        height: 50%;
+        left: 50%;
+        top: 50%;
+        transform-origin: 0 0;
+        background: linear-gradient(
+          45deg,
+          transparent 0%,
+          rgba(37, 99, 235, 0.35) 100%
+        );
+        animation: radarSweep 2.2s linear infinite;
+      }
+
+      .radar::after {
+        content: "";
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #2563eb;
+        left: calc(50% - 6px);
+        top: calc(50% - 6px);
+        box-shadow: 0 0 15px rgba(37, 99, 235, 0.7);
+      }
+
+      @keyframes radarSweep {
+        from {
+          transform: rotate(0deg);
+        }
+
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .search-title {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      .search-message {
+        color: #667085;
+        min-height: 24px;
+        margin-bottom: 20px;
+      }
+
+      .accuracy-box {
+        max-width: 600px;
+        margin: 0 auto 20px;
+        padding: 18px;
+        background: #f8fafc;
+        border-radius: 12px;
+      }
+
+      .accuracy-label {
+        color: #667085;
+        font-size: 14px;
+        margin-bottom: 7px;
+      }
+
+      .accuracy-value {
+        font-size: 30px;
+        font-weight: 700;
+      }
+
+      .progress-container {
+        max-width: 600px;
+        height: 9px;
+        margin: 0 auto 25px;
+        background: #e5e7eb;
+        border-radius: 20px;
+        overflow: hidden;
+      }
+
+      .progress {
+        height: 100%;
+        width: 0%;
+        background: #2563eb;
+        transition: width 0.5s ease;
+      }
+
+      .status-list {
+        max-width: 650px;
+        margin: 0 auto;
+        text-align: left;
+      }
+
+      .status-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid #eef2f7;
+        color: #667085;
+      }
+
+      .status-icon {
+        width: 26px;
+        text-align: center;
+      }
+
+      .status-item.active {
+        color: #2563eb;
+        font-weight: 600;
+      }
+
+      .status-item.complete {
+        color: #15803d;
+      }
+
+      .readings {
+        margin-top: 25px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+      }
+
+      .reading {
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 14px;
+        text-align: center;
+      }
+
+      .reading strong {
+        display: block;
+        font-size: 20px;
+        margin-top: 5px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .result {
+        text-align: center;
+      }
+
+      .result-icon {
+        font-size: 52px;
+        margin-bottom: 10px;
+      }
+
+      .result h2 {
+        margin: 0 0 10px;
+        font-size: 27px;
+      }
+
+      .result p {
+        color: #667085;
+        line-height: 1.6;
+      }
+
+      .location-primary {
+        background: #eff6ff;
+        border-radius: 14px;
+        padding: 20px;
+        margin: 20px 0;
+      }
+
+      .location-primary h3 {
+        margin: 0 0 7px;
+        color: #1d4ed8;
+      }
+
+      .hierarchy {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin-top: 20px;
+        text-align: left;
+      }
+
+      .hierarchy-item {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 14px;
+      }
+
+      .hierarchy-item .label {
+        font-size: 12px;
+        color: #667085;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+      }
+
+      .hierarchy-item .value {
+        font-weight: 600;
+        word-break: break-word;
+      }
+
+      .coordinates {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 12px;
+        margin-top: 20px;
+      }
+
+      .coordinate-box {
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 14px;
+      }
+
+      .coordinate-box small {
+        display: block;
+        color: #667085;
+        margin-bottom: 5px;
+      }
+
+      .coordinate-box strong {
+        font-size: 17px;
+      }
+
+      #map {
+        height: 420px;
+        border-radius: 15px;
+        margin-top: 22px;
+        overflow: hidden;
+      }
+
+      .warning {
+        background: #fff7ed;
+        border-left: 5px solid #f97316;
+        padding: 17px;
+        border-radius: 10px;
+        text-align: left;
+        margin-top: 20px;
+      }
+
+      .error {
+        background: #fef2f2;
+        border-left: 5px solid #dc2626;
+        padding: 17px;
+        border-radius: 10px;
+        text-align: left;
+        margin-top: 20px;
+      }
+
+      .success {
+        background: #f0fdf4;
+        border-left: 5px solid #16a34a;
+        padding: 17px;
+        border-radius: 10px;
+        text-align: left;
+        margin-top: 20px;
+      }
+
+      button {
+        border: none;
+        background: #2563eb;
+        color: white;
+        padding: 13px 22px;
+        border-radius: 9px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      button:hover {
+        background: #1d4ed8;
+      }
+
+      .footer {
+        text-align: center;
+        color: #98a2b3;
+        font-size: 13px;
+        padding: 10px;
+      }
+
+      @media (max-width: 600px) {
+        .container {
+          width: 96%;
+          margin: 15px auto;
+        }
+
+        .card {
+          padding: 20px;
+        }
+
+        .header h1 {
+          font-size: 25px;
+        }
+
+        #map {
+          height: 330px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="card">
+        <div class="header">
+          <h1>📍 Precision Location Sharing</h1>
+
+          <p>
+            This page requests your device's current location. Your browser will
+            ask for permission before location information is shared.
+          </p>
+        </div>
+
+        <div class="consent">
+          <strong>🔐 Your permission is required</strong><br />
+          Location access is controlled by your browser and device. The system
+          does not bypass the browser's location permission. Only continue if
+          you agree to share your current location.
+        </div>
+
+        <!-- SEARCH SECTION -->
+        <div id="searchSection" class="search-area">
+          <div class="radar"></div>
+
+          <div class="search-title">Searching for your location</div>
+
+          <div id="searchMessage" class="search-message">
+            Connecting to device location services...
+          </div>
+
+          <div class="accuracy-box">
+            <div class="accuracy-label">Best estimated accuracy so far</div>
+
+            <div id="accuracyValue" class="accuracy-value">Waiting...</div>
+          </div>
+
+          <div class="progress-container">
+            <div id="progress" class="progress"></div>
+          </div>
+
+          <div class="status-list">
+            <div id="status1" class="status-item active">
+              <span class="status-icon">🔄</span>
+              <span>Connecting to location services</span>
+            </div>
+
+            <div id="status2" class="status-item">
+              <span class="status-icon">📡</span>
+              <span>Receiving GPS/location readings</span>
+            </div>
+
+            <div id="status3" class="status-item">
+              <span class="status-icon">🔎</span>
+              <span>Comparing successive readings</span>
+            </div>
+
+            <div id="status4" class="status-item">
+              <span class="status-icon">🎯</span>
+              <span>Refining the position estimate</span>
+            </div>
+
+            <div id="status5" class="status-item">
+              <span class="status-icon">🗺️</span>
+              <span>Preparing geographic identification</span>
+            </div>
+          </div>
+
+          <div class="readings">
+            <div class="reading">
+              Readings
+              <strong id="readingCount">0</strong>
+            </div>
+
+            <div class="reading">
+              Best accuracy
+              <strong id="bestAccuracy">—</strong>
+            </div>
+
+            <div class="reading">
+              Search time
+              <strong id="searchTime">0s</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- RESULT SECTION -->
+        <div id="resultSection" class="result hidden">
+          <div id="resultIcon" class="result-icon">📍</div>
+
+          <h2 id="resultTitle">Location identified</h2>
+
+          <p id="resultMessage">Your location has been processed.</p>
+
+          <div id="resultContent"></div>
+        </div>
+      </div>
+
+      <div class="footer">Location services require browser permission.</div>
+    </div>
+
+    <!-- Leaflet -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+      /*
+    ============================================================
+    PRECISION LOCATION COLLECTION
+    ============================================================
+    */
+
+      const MAX_COLLECTION_TIME = 90000; // 90 seconds
+
+      const TARGET_ACCURACY = 10; // target: approximately 10m
+
+      const ACCEPTABLE_ACCURACY = 50; // acceptable result
+
+      const MIN_STABLE_READINGS = 3;
+
+      let watchId = null;
+
+      let startTime = null;
+
+      let timerInterval = null;
+
+      let readings = [];
+
+      let bestReading = null;
+
+      let stableGoodReadings = 0;
+
+      let finished = false;
+
+      let map = null;
+
+      let marker = null;
+
+      let accuracyCircle = null;
+
+      /*
+    ============================================================
+    ELEMENTS
+    ============================================================
+    */
+
+      const searchSection = document.getElementById("searchSection");
+
+      const resultSection = document.getElementById("resultSection");
+
+      const searchMessage = document.getElementById("searchMessage");
+
+      const accuracyValue = document.getElementById("accuracyValue");
+
+      const progress = document.getElementById("progress");
+
+      const readingCount = document.getElementById("readingCount");
+
+      const bestAccuracy = document.getElementById("bestAccuracy");
+
+      const searchTime = document.getElementById("searchTime");
+
+      /*
+    ============================================================
+    SEARCH MESSAGES
+    ============================================================
+    */
+
+      const searchMessages = [
+        "📡 Connecting to device location services...",
+        "🛰️ Searching for the best available GPS position...",
+        "📍 Waiting for the device to improve its position...",
+        "🔎 Comparing successive location readings...",
+        "🎯 Refining the position estimate...",
+        "📡 Checking whether a more precise fix is available...",
+        "🗺️ Preparing geographic identification...",
+      ];
+
+      let messageIndex = 0;
+
+      const messageTimer = setInterval(() => {
+        if (finished) {
+          clearInterval(messageTimer);
+          return;
+        }
+
+        messageIndex = (messageIndex + 1) % searchMessages.length;
+
+        searchMessage.textContent = searchMessages[messageIndex];
+      }, 5000);
+
+      /*
+    ============================================================
+    STATUS HELPERS
+    ============================================================
+    */
+
+      function activateStatus(number) {
+        for (let i = 1; i <= 5; i++) {
+          const element = document.getElementById("status" + i);
+
+          if (i < number) {
+            element.classList.remove("active");
+
+            element.classList.add("complete");
+
+            element.querySelector(".status-icon").textContent = "✓";
+          } else if (i === number) {
+            element.classList.add("active");
+
+            element.classList.remove("complete");
+          }
+        }
+      }
+
+      /*
+    ============================================================
+    TIMER
+    ============================================================
+    */
+
+      function startTimer() {
+        startTime = Date.now();
+
+        timerInterval = setInterval(() => {
+          const seconds = Math.floor((Date.now() - startTime) / 1000);
+
+          searchTime.textContent = seconds + "s";
+
+          const percentage = Math.min(100, (seconds / 90) * 100);
+
+          progress.style.width = percentage + "%";
+        }, 500);
+      }
+
+      /*
+    ============================================================
+    LOCATION ERROR
+    ============================================================
+    */
+
+      function showError(message) {
+        finished = true;
+
+        stopWatching();
+
+        clearInterval(timerInterval);
+
+        searchSection.classList.add("hidden");
+
+        resultSection.classList.remove("hidden");
+
+        document.getElementById("resultIcon").textContent = "⚠️";
+
+        document.getElementById("resultTitle").textContent =
+          "Location unavailable";
+
+        document.getElementById("resultMessage").textContent = message;
+
+        document.getElementById("resultContent").innerHTML = `
+                <div class="error">
+                    <strong>What happened?</strong><br><br>
+                    The device did not provide a usable location.
+                    Please make sure location services are enabled
+                    and that this website has permission to access
+                    your location.
+                </div>
+            `;
+      }
+
+      /*
+    ============================================================
+    STOP WATCHING
+    ============================================================
+    */
+
+      function stopWatching() {
+        if (watchId !== null) {
+          navigator.geolocation.clearWatch(watchId);
+
+          watchId = null;
+        }
+      }
+
+      /*
+    ============================================================
+    ADD GPS READING
+    ============================================================
+    */
+
+      function addReading(position) {
+        if (finished) {
+          return;
+        }
+
+        const coords = position.coords;
+
+        const latitude = coords.latitude;
+
+        const longitude = coords.longitude;
+
+        const accuracy = coords.accuracy;
+
+        if (
+          typeof latitude !== "number" ||
+          typeof longitude !== "number" ||
+          typeof accuracy !== "number"
+        ) {
+          return;
+        }
+
+        const reading = {
+          latitude: latitude,
+
+          longitude: longitude,
+
+          accuracy: accuracy,
+
+          timestamp: new Date().toISOString(),
+        };
+
+        readings.push(reading);
+
+        /*
+        Keep only the latest 30 readings.
+        */
+
+        if (readings.length > 30) {
+          readings.shift();
+        }
+
+        /*
+        Determine best reading.
+        */
+
+        if (bestReading === null || accuracy < bestReading.accuracy) {
+          bestReading = reading;
+        }
+
+        /*
+        Update interface.
+        */
+
+        readingCount.textContent = readings.length;
+
+        bestAccuracy.textContent = Math.round(bestReading.accuracy) + " m";
+
+        accuracyValue.textContent = Math.round(bestReading.accuracy) + " m";
+
+        activateStatus(2);
+
+        if (accuracy <= 50) {
+          activateStatus(3);
+        }
+
+        if (accuracy <= 20) {
+          activateStatus(4);
+        }
+
+        /*
+        ========================================================
+        STABILITY CHECK
+        ========================================================
+        */
+
+        if (accuracy <= TARGET_ACCURACY) {
+          stableGoodReadings++;
+        } else {
+          stableGoodReadings = 0;
+        }
+
+        /*
+        If we have several good readings,
+        we can finish early.
+        */
+
+        if (stableGoodReadings >= MIN_STABLE_READINGS) {
+          searchMessage.textContent =
+            "🎯 Stable high-accuracy position obtained.";
+
+          finalizeLocation();
+        }
+      }
+
+      /*
+    ============================================================
+    GPS ERROR
+    ============================================================
+    */
+
+      function handleLocationError(error) {
+        if (finished) {
+          return;
+        }
+
+        let message = "The device could not provide a location.";
+
+        if (error.code === 1) {
+          message =
+            "Location permission was denied. Please allow location access in your browser.";
+        } else if (error.code === 2) {
+          message = "The device could not determine its current location.";
+        } else if (error.code === 3) {
+          message =
+            "The location request timed out while waiting for a device reading.";
+        }
+
+        /*
+        Do not immediately terminate the search for
+        temporary GPS errors. The browser may recover.
+        */
+
+        searchMessage.textContent =
+          "📡 Still waiting for a usable device location...";
+      }
+
+      /*
+    ============================================================
+    START LOCATION SEARCH
+    ============================================================
+    */
+
+      function startLocationSearch() {
+        if (!navigator.geolocation) {
+          showError("This browser does not support location services.");
+
+          return;
+        }
+
+        activateStatus(1);
+
+        startTimer();
+
+        /*
+        Important:
+        We DO NOT create or move the map here.
+
+        This prevents the map from requesting tiles
+        repeatedly while GPS readings are changing.
+        */
+
+        watchId = navigator.geolocation.watchPosition(
+          addReading,
+
+          handleLocationError,
+
+          {
+            enableHighAccuracy: true,
+
+            timeout: 30000,
+
+            maximumAge: 0,
+          },
+        );
+
+        /*
+        Maximum collection time.
+        */
+
+        setTimeout(() => {
+          if (finished) {
+            return;
+          }
+
+          if (bestReading !== null) {
+            finalizeLocation();
+          } else {
+            showError(
+              "No usable location reading was received within the search period.",
+            );
+          }
+        }, MAX_COLLECTION_TIME);
+      }
+
+      /*
+    ============================================================
+    FINALIZE LOCATION
+    ============================================================
+    */
+
+      async function finalizeLocation() {
+        if (finished) {
+          return;
+        }
+
+        finished = true;
+
+        stopWatching();
+
+        clearInterval(timerInterval);
+
+        if (!bestReading) {
+          showError("No usable location reading was obtained.");
+
+          return;
+        }
+
+        const accuracy = bestReading.accuracy;
+
+        /*
+        Extremely poor accuracy.
+
+        Do not save a result that is hundreds of
+        metres or kilometres away from the likely
+        actual position.
+        */
+
+        if (accuracy > 500) {
+          searchSection.classList.add("hidden");
+
+          resultSection.classList.remove("hidden");
+
+          document.getElementById("resultIcon").textContent = "⚠️";
+
+          document.getElementById("resultTitle").textContent =
+            "Precise GPS Fix Not Obtained";
+
+          document.getElementById("resultMessage").textContent =
+            "The device's best available reading was approximately " +
+            Math.round(accuracy) +
+            " meters in estimated accuracy.";
+
+          document.getElementById("resultContent").innerHTML = `
+
+                    <div class="warning">
+
+                        <strong>
+                            Reading not saved as a precise location
+                        </strong>
+
+                        <br><br>
+
+                        The uncertainty is too large for this
+                        application to treat the result as a
+                        precise location.
+
+                        <br><br>
+
+                        Try moving outdoors or to a location with
+                        a clearer view of the sky and try again.
+
+                    </div>
+
+                `;
+
+          return;
+        }
+
+        /*
+        Good enough to process.
+        */
+
+        activateStatus(5);
+
+        searchMessage.textContent = "🗺️ Identifying the geographic area...";
+
+        try {
+          const geographicData = await reverseGeocode(
+            bestReading.latitude,
+            bestReading.longitude,
+          );
+
+          await saveLocation(bestReading, geographicData);
+
+          showResult(bestReading, geographicData);
+        } catch (error) {
+          console.error(error);
+
+          showResult(bestReading, {
+            primaryArea: "Location identified",
+            county: "",
+            country: "",
+            hierarchy: [],
+          });
+        }
+      }
+
+      /*
+    ============================================================
+    REVERSE GEOCODING
+    ============================================================
+    */
+
+      async function reverseGeocode(latitude, longitude) {
+        const url =
+          "https://nominatim.openstreetmap.org/reverse" +
+          "?format=jsonv2" +
+          "&lat=" +
+          encodeURIComponent(latitude) +
+          "&lon=" +
+          encodeURIComponent(longitude) +
+          "&zoom=18" +
+          "&addressdetails=1";
+
+        const response = await fetch(url, {
+          method: "GET",
+
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Reverse geocoding failed.");
+        }
+
+        const data = await response.json();
+
+        const address = data.address || {};
+
+        /*
+        Geographic hierarchy.
+
+        We display every useful level returned
+        by the geocoder without inventing names.
+        */
+
+        const fields = [
+          ["Neighbourhood", address.neighbourhood],
+
+          ["Suburb", address.suburb],
+
+          ["Village", address.village],
+
+          ["Town", address.town],
+
+          ["City", address.city],
+
+          ["City District", address.city_district],
+
+          ["Municipality", address.municipality],
+
+          ["Ward", address.ward],
+
+          ["County", address.county],
+
+          ["State", address.state],
+
+          ["Country", address.country],
+        ];
+
+        const hierarchy = [];
+
+        const seen = new Set();
+
+        fields.forEach(([label, value]) => {
+          if (!value) {
+            return;
+          }
+
+          const normalized = value.trim().toLowerCase();
+
+          if (seen.has(normalized)) {
+            return;
+          }
+
+          seen.add(normalized);
+
+          hierarchy.push({
+            label: label,
+
+            value: value,
+          });
+        });
+
+        /*
+        Primary display area.
+        */
+
+        const primaryArea =
+          address.neighbourhood ||
+          address.suburb ||
+          address.village ||
+          address.town ||
+          address.city ||
+          address.municipality ||
+          address.county ||
+          "Location identified";
+
+        return {
+          primaryArea: primaryArea,
+
+          county: address.county || "",
+
+          country: address.country || "",
+
+          hierarchy: hierarchy,
+        };
+      }
+
+      /*
+    ============================================================
+    SAVE LOCATION TO DJANGO
+    ============================================================
+    */
+
+      async function saveLocation(reading, geographicData) {
+        const sessionId = getSessionId();
+
+        const payload = {
+          session_id: sessionId,
+
+          latitude: reading.latitude,
+
+          longitude: reading.longitude,
+
+          accuracy: reading.accuracy,
+
+          area: geographicData.primaryArea,
+
+          county: geographicData.county,
+
+          country: geographicData.country,
+
+          device_timestamp: reading.timestamp,
+        };
+
+        const response = await fetch("/api/save-location/", {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+
+            Accept: "application/json",
+          },
+
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error("Location could not be saved.");
+        }
+
+        return await response.json();
+      }
+
+      /*
+    ============================================================
+    SESSION ID
+    ============================================================
+    */
+
+      function getSessionId() {
+        let sessionId = localStorage.getItem("location_session_id");
+
+        if (!sessionId) {
+          sessionId =
+            "session-" +
+            Date.now() +
+            "-" +
+            Math.random().toString(36).substring(2, 10);
+
+          localStorage.setItem("location_session_id", sessionId);
+        }
+
+        return sessionId;
+      }
+
+      /*
+    ============================================================
+    SHOW FINAL RESULT
+    ============================================================
+    */
+
+      function showResult(reading, geographicData) {
+        searchSection.classList.add("hidden");
+
+        resultSection.classList.remove("hidden");
+
+        document.getElementById("resultIcon").textContent = "📍";
+
+        document.getElementById("resultTitle").textContent =
+          "Location Identified";
+
+        document.getElementById("resultMessage").textContent =
+          "The best available device location has been identified and processed.";
+
+        let hierarchyHTML = "";
+
+        geographicData.hierarchy.forEach((item) => {
+          hierarchyHTML += `
+
+                    <div class="hierarchy-item">
+
+                        <div class="label">
+                            ${escapeHTML(item.label)}
+                        </div>
+
+                        <div class="value">
+                            ${escapeHTML(item.value)}
+                        </div>
+
+                    </div>
+
+                `;
+        });
+
+        document.getElementById("resultContent").innerHTML = `
+
+                <div class="success">
+
+                    <strong>
+                        Location successfully processed.
+                    </strong>
+
+                    <br><br>
+
+                    Estimated device accuracy:
+                    <strong>
+                        ${Math.round(reading.accuracy)} meters
+                    </strong>
+
+                </div>
+
+
+                <div class="location-primary">
+
+                    <h3>
+                        ${escapeHTML(geographicData.primaryArea)}
+                    </h3>
+
+                    <div>
+                        ${
+                          geographicData.county
+                            ? escapeHTML(geographicData.county)
+                            : ""
+                        }
+
+                        ${
+                          geographicData.country
+                            ? " • " + escapeHTML(geographicData.country)
+                            : ""
+                        }
+                    </div>
+
+                </div>
+
+
+                <div class="hierarchy">
+
+                    ${hierarchyHTML}
+
+                </div>
+
+
+                <div class="coordinates">
+
+                    <div class="coordinate-box">
+
+                        <small>
+                            Latitude
+                        </small>
+
+                        <strong>
+                            ${reading.latitude.toFixed(7)}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="coordinate-box">
+
+                        <small>
+                            Longitude
+                        </small>
+
+                        <strong>
+                            ${reading.longitude.toFixed(7)}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="coordinate-box">
+
+                        <small>
+                            Estimated Accuracy
+                        </small>
+
+                        <strong>
+                            ${Math.round(reading.accuracy)} m
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div id="map"></div>
+
+            `;
+
+        /*
+        ========================================================
+        IMPORTANT MAP CHANGE
+        ========================================================
+
+        The map is created ONLY NOW.
+
+        It is not created while GPS is searching.
+        It is not moved for every GPS reading.
+        */
+
+        initializeMap(reading);
+      }
+
+      /*
+    ============================================================
+    INITIALIZE MAP ONCE
+    ============================================================
+    */
+
+      function initializeMap(reading) {
+        const mapElement = document.getElementById("map");
+
+        if (!mapElement) {
+          return;
+        }
+
+        /*
+        Create the map only once.
+        */
+
+        map = L.map("map", {
+          zoomControl: true,
+        });
+
+        /*
+        ========================================================
+        OPENSTREETMAP TILE URL
+        ========================================================
+
+        Use the official single-host tile endpoint.
+
+        We deliberately do not use:
+
+        https://{s}.tile.openstreetmap.org/...
+
+        */
+
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+
+          attribution: "&copy; OpenStreetMap contributors",
+        }).addTo(map);
+
+        /*
+        Choose zoom based on estimated accuracy.
+        */
+
+        let zoom = 16;
+
+        if (reading.accuracy <= 10) {
+          zoom = 18;
+        } else if (reading.accuracy <= 25) {
+          zoom = 17;
+        } else if (reading.accuracy <= 100) {
+          zoom = 16;
+        } else {
+          zoom = 14;
+        }
+
+        /*
+        Center ONCE.
+        */
+
+        map.setView([reading.latitude, reading.longitude], zoom);
+
+        /*
+        Marker.
+        */
+
+        marker = L.marker([reading.latitude, reading.longitude]).addTo(map);
+
+        marker
+          .bindPopup(
+            "<strong>Your selected location</strong><br>" +
+              "Estimated accuracy: " +
+              Math.round(reading.accuracy) +
+              " m",
+          )
+          .openPopup();
+
+        /*
+        Accuracy circle.
+
+        This visually represents the browser's
+        reported uncertainty radius.
+        */
+
+        accuracyCircle = L.circle([reading.latitude, reading.longitude], {
+          radius: reading.accuracy,
+
+          weight: 2,
+
+          fillOpacity: 0.12,
+        }).addTo(map);
+
+        /*
+        Make sure Leaflet calculates its dimensions
+        correctly after the result is displayed.
+        */
+
+        setTimeout(() => {
+          map.invalidateSize();
+        }, 200);
+      }
+
+      /*
+    ============================================================
+    HTML ESCAPE
+    ============================================================
+    */
+
+      function escapeHTML(value) {
+        if (value === null || value === undefined) {
+          return "";
+        }
+
+        return String(value)
+          .replace(/&/g, "&amp;")
+
+          .replace(/</g, "&lt;")
+
+          .replace(/>/g, "&gt;")
+
+          .replace(/"/g, "&quot;")
+
+          .replace(/'/g, "&#039;");
+      }
+
+      /*
+    ============================================================
+    START
+    ============================================================
+    */
+
+      window.addEventListener("load", () => {
+        startLocationSearch();
+      });
+    </script>
+  </body>
+</html>
