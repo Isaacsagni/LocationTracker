@@ -351,6 +351,37 @@
         background: #1d4ed8;
       }
 
+      /* Dashboard link */
+      .dashboard-access {
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+        text-align: center;
+      }
+
+      .dashboard-button {
+        display: inline-block;
+        background: #0f172a;
+        color: white;
+        text-decoration: none;
+        padding: 13px 24px;
+        border-radius: 9px;
+        font-size: 15px;
+        font-weight: 600;
+        transition: 0.2s ease;
+      }
+
+      .dashboard-button:hover {
+        background: #1e293b;
+        transform: translateY(-1px);
+      }
+
+      .dashboard-note {
+        margin-top: 9px;
+        color: #667085;
+        font-size: 12px;
+      }
+
       .footer {
         text-align: center;
         color: #98a2b3;
@@ -393,12 +424,14 @@
 
         <div class="consent">
           <strong>🔐 Your permission is required</strong><br />
+
           Location access is controlled by your browser and device. The system
           does not bypass the browser's location permission. Only continue if
           you agree to share your current location.
         </div>
 
         <!-- SEARCH SECTION -->
+
         <div id="searchSection" class="search-area">
           <div class="radar"></div>
 
@@ -464,6 +497,7 @@
         </div>
 
         <!-- RESULT SECTION -->
+
         <div id="resultSection" class="result hidden">
           <div id="resultIcon" class="result-icon">📍</div>
 
@@ -475,24 +509,35 @@
         </div>
       </div>
 
+      <!-- DASHBOARD LINK -->
+
+      <div class="card dashboard-access">
+        <a href="{% url 'tracker:dashboard' %}" class="dashboard-button">
+          🔐 Open Dashboard
+        </a>
+
+        <div class="dashboard-note">Authorized users only</div>
+      </div>
+
       <div class="footer">Location services require browser permission.</div>
     </div>
 
     <!-- Leaflet -->
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
       /*
-    ============================================================
-    PRECISION LOCATION COLLECTION
-    ============================================================
-    */
+      ============================================================
+      PRECISION LOCATION COLLECTION
+      ============================================================
+      */
 
-      const MAX_COLLECTION_TIME = 90000; // 90 seconds
+      const MAX_COLLECTION_TIME = 90000;
 
-      const TARGET_ACCURACY = 10; // target: approximately 10m
+      const TARGET_ACCURACY = 10;
 
-      const ACCEPTABLE_ACCURACY = 50; // acceptable result
+      const ACCEPTABLE_ACCURACY = 50;
 
       const MIN_STABLE_READINGS = 3;
 
@@ -517,10 +562,10 @@
       let accuracyCircle = null;
 
       /*
-    ============================================================
-    ELEMENTS
-    ============================================================
-    */
+      ============================================================
+      ELEMENTS
+      ============================================================
+      */
 
       const searchSection = document.getElementById("searchSection");
 
@@ -539,10 +584,10 @@
       const searchTime = document.getElementById("searchTime");
 
       /*
-    ============================================================
-    SEARCH MESSAGES
-    ============================================================
-    */
+      ============================================================
+      SEARCH MESSAGES
+      ============================================================
+      */
 
       const searchMessages = [
         "📡 Connecting to device location services...",
@@ -568,10 +613,10 @@
       }, 5000);
 
       /*
-    ============================================================
-    STATUS HELPERS
-    ============================================================
-    */
+      ============================================================
+      STATUS HELPERS
+      ============================================================
+      */
 
       function activateStatus(number) {
         for (let i = 1; i <= 5; i++) {
@@ -592,10 +637,10 @@
       }
 
       /*
-    ============================================================
-    TIMER
-    ============================================================
-    */
+      ============================================================
+      TIMER
+      ============================================================
+      */
 
       function startTimer() {
         startTime = Date.now();
@@ -612,10 +657,10 @@
       }
 
       /*
-    ============================================================
-    LOCATION ERROR
-    ============================================================
-    */
+      ============================================================
+      LOCATION ERROR
+      ============================================================
+      */
 
       function showError(message) {
         finished = true;
@@ -636,21 +681,22 @@
         document.getElementById("resultMessage").textContent = message;
 
         document.getElementById("resultContent").innerHTML = `
-                <div class="error">
-                    <strong>What happened?</strong><br><br>
-                    The device did not provide a usable location.
-                    Please make sure location services are enabled
-                    and that this website has permission to access
-                    your location.
-                </div>
-            `;
+          <div class="error">
+            <strong>What happened?</strong>
+            <br><br>
+            The device did not provide a usable location.
+            Please make sure location services are enabled
+            and that this website has permission to access
+            your location.
+          </div>
+        `;
       }
 
       /*
-    ============================================================
-    STOP WATCHING
-    ============================================================
-    */
+      ============================================================
+      STOP WATCHING
+      ============================================================
+      */
 
       function stopWatching() {
         if (watchId !== null) {
@@ -661,10 +707,10 @@
       }
 
       /*
-    ============================================================
-    ADD GPS READING
-    ============================================================
-    */
+      ============================================================
+      ADD GPS READING
+      ============================================================
+      */
 
       function addReading(position) {
         if (finished) {
@@ -699,10 +745,6 @@
 
         readings.push(reading);
 
-        /*
-        Keep only the latest 30 readings.
-        */
-
         if (readings.length > 30) {
           readings.shift();
         }
@@ -727,7 +769,7 @@
 
         activateStatus(2);
 
-        if (accuracy <= 50) {
+        if (accuracy <= ACCEPTABLE_ACCURACY) {
           activateStatus(3);
         }
 
@@ -736,9 +778,7 @@
         }
 
         /*
-        ========================================================
-        STABILITY CHECK
-        ========================================================
+        Stability check.
         */
 
         if (accuracy <= TARGET_ACCURACY) {
@@ -748,8 +788,7 @@
         }
 
         /*
-        If we have several good readings,
-        we can finish early.
+        Finish after several good readings.
         */
 
         if (stableGoodReadings >= MIN_STABLE_READINGS) {
@@ -761,10 +800,10 @@
       }
 
       /*
-    ============================================================
-    GPS ERROR
-    ============================================================
-    */
+      ============================================================
+      GPS ERROR
+      ============================================================
+      */
 
       function handleLocationError(error) {
         if (finished) {
@@ -784,8 +823,7 @@
         }
 
         /*
-        Do not immediately terminate the search for
-        temporary GPS errors. The browser may recover.
+        Do not immediately terminate the search.
         */
 
         searchMessage.textContent =
@@ -793,10 +831,10 @@
       }
 
       /*
-    ============================================================
-    START LOCATION SEARCH
-    ============================================================
-    */
+      ============================================================
+      START LOCATION SEARCH
+      ============================================================
+      */
 
       function startLocationSearch() {
         if (!navigator.geolocation) {
@@ -811,10 +849,7 @@
 
         /*
         Important:
-        We DO NOT create or move the map here.
-
-        This prevents the map from requesting tiles
-        repeatedly while GPS readings are changing.
+        We do NOT create or move the map here.
         */
 
         watchId = navigator.geolocation.watchPosition(
@@ -851,10 +886,10 @@
       }
 
       /*
-    ============================================================
-    FINALIZE LOCATION
-    ============================================================
-    */
+      ============================================================
+      FINALIZE LOCATION
+      ============================================================
+      */
 
       async function finalizeLocation() {
         if (finished) {
@@ -877,10 +912,6 @@
 
         /*
         Extremely poor accuracy.
-
-        Do not save a result that is hundreds of
-        metres or kilometres away from the likely
-        actual position.
         */
 
         if (accuracy > 500) {
@@ -900,26 +931,26 @@
 
           document.getElementById("resultContent").innerHTML = `
 
-                    <div class="warning">
+            <div class="warning">
 
-                        <strong>
-                            Reading not saved as a precise location
-                        </strong>
+              <strong>
+                Reading not saved as a precise location
+              </strong>
 
-                        <br><br>
+              <br><br>
 
-                        The uncertainty is too large for this
-                        application to treat the result as a
-                        precise location.
+              The uncertainty is too large for this
+              application to treat the result as a
+              precise location.
 
-                        <br><br>
+              <br><br>
 
-                        Try moving outdoors or to a location with
-                        a clearer view of the sky and try again.
+              Try moving outdoors or to a location with
+              a clearer view of the sky and try again.
 
-                    </div>
+            </div>
 
-                `;
+          `;
 
           return;
         }
@@ -946,18 +977,21 @@
 
           showResult(bestReading, {
             primaryArea: "Location identified",
+
             county: "",
+
             country: "",
+
             hierarchy: [],
           });
         }
       }
 
       /*
-    ============================================================
-    REVERSE GEOCODING
-    ============================================================
-    */
+      ============================================================
+      REVERSE GEOCODING
+      ============================================================
+      */
 
       async function reverseGeocode(latitude, longitude) {
         const url =
@@ -988,9 +1022,6 @@
 
         /*
         Geographic hierarchy.
-
-        We display every useful level returned
-        by the geocoder without inventing names.
         */
 
         const fields = [
@@ -1036,7 +1067,6 @@
 
           hierarchy.push({
             label: label,
-
             value: value,
           });
         });
@@ -1067,10 +1097,10 @@
       }
 
       /*
-    ============================================================
-    SAVE LOCATION TO DJANGO
-    ============================================================
-    */
+      ============================================================
+      SAVE LOCATION TO DJANGO
+      ============================================================
+      */
 
       async function saveLocation(reading, geographicData) {
         const sessionId = getSessionId();
@@ -1113,10 +1143,10 @@
       }
 
       /*
-    ============================================================
-    SESSION ID
-    ============================================================
-    */
+      ============================================================
+      SESSION ID
+      ============================================================
+      */
 
       function getSessionId() {
         let sessionId = localStorage.getItem("location_session_id");
@@ -1135,10 +1165,10 @@
       }
 
       /*
-    ============================================================
-    SHOW FINAL RESULT
-    ============================================================
-    */
+      ============================================================
+      SHOW FINAL RESULT
+      ============================================================
+      */
 
       function showResult(reading, geographicData) {
         searchSection.classList.add("hidden");
@@ -1158,115 +1188,114 @@
         geographicData.hierarchy.forEach((item) => {
           hierarchyHTML += `
 
-                    <div class="hierarchy-item">
+              <div class="hierarchy-item">
 
-                        <div class="label">
-                            ${escapeHTML(item.label)}
-                        </div>
+                <div class="label">
+                  ${escapeHTML(item.label)}
+                </div>
 
-                        <div class="value">
-                            ${escapeHTML(item.value)}
-                        </div>
+                <div class="value">
+                  ${escapeHTML(item.value)}
+                </div>
 
-                    </div>
+              </div>
 
-                `;
+            `;
         });
 
         document.getElementById("resultContent").innerHTML = `
 
-                <div class="success">
+          <div class="success">
 
-                    <strong>
-                        Location successfully processed.
-                    </strong>
+            <strong>
+              Location successfully processed.
+            </strong>
 
-                    <br><br>
+            <br><br>
 
-                    Estimated device accuracy:
-                    <strong>
-                        ${Math.round(reading.accuracy)} meters
-                    </strong>
+            Estimated device accuracy:
 
-                </div>
+            <strong>
+              ${Math.round(reading.accuracy)} meters
+            </strong>
 
-
-                <div class="location-primary">
-
-                    <h3>
-                        ${escapeHTML(geographicData.primaryArea)}
-                    </h3>
-
-                    <div>
-                        ${
-                          geographicData.county
-                            ? escapeHTML(geographicData.county)
-                            : ""
-                        }
-
-                        ${
-                          geographicData.country
-                            ? " • " + escapeHTML(geographicData.country)
-                            : ""
-                        }
-                    </div>
-
-                </div>
+          </div>
 
 
-                <div class="hierarchy">
+          <div class="location-primary">
 
-                    ${hierarchyHTML}
+            <h3>
+              ${escapeHTML(geographicData.primaryArea)}
+            </h3>
 
-                </div>
+            <div>
 
+              ${geographicData.county ? escapeHTML(geographicData.county) : ""}
 
-                <div class="coordinates">
+              ${
+                geographicData.country
+                  ? " • " + escapeHTML(geographicData.country)
+                  : ""
+              }
 
-                    <div class="coordinate-box">
+            </div>
 
-                        <small>
-                            Latitude
-                        </small>
-
-                        <strong>
-                            ${reading.latitude.toFixed(7)}
-                        </strong>
-
-                    </div>
-
-
-                    <div class="coordinate-box">
-
-                        <small>
-                            Longitude
-                        </small>
-
-                        <strong>
-                            ${reading.longitude.toFixed(7)}
-                        </strong>
-
-                    </div>
+          </div>
 
 
-                    <div class="coordinate-box">
+          <div class="hierarchy">
 
-                        <small>
-                            Estimated Accuracy
-                        </small>
+            ${hierarchyHTML}
 
-                        <strong>
-                            ${Math.round(reading.accuracy)} m
-                        </strong>
-
-                    </div>
-
-                </div>
+          </div>
 
 
-                <div id="map"></div>
+          <div class="coordinates">
 
-            `;
+            <div class="coordinate-box">
+
+              <small>
+                Latitude
+              </small>
+
+              <strong>
+                ${reading.latitude.toFixed(7)}
+              </strong>
+
+            </div>
+
+
+            <div class="coordinate-box">
+
+              <small>
+                Longitude
+              </small>
+
+              <strong>
+                ${reading.longitude.toFixed(7)}
+              </strong>
+
+            </div>
+
+
+            <div class="coordinate-box">
+
+              <small>
+                Estimated Accuracy
+              </small>
+
+              <strong>
+                ${Math.round(reading.accuracy)} m
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div id="map"></div>
+
+        `;
 
         /*
         ========================================================
@@ -1283,10 +1312,10 @@
       }
 
       /*
-    ============================================================
-    INITIALIZE MAP ONCE
-    ============================================================
-    */
+      ============================================================
+      INITIALIZE MAP ONCE
+      ============================================================
+      */
 
       function initializeMap(reading) {
         const mapElement = document.getElementById("map");
@@ -1304,16 +1333,7 @@
         });
 
         /*
-        ========================================================
-        OPENSTREETMAP TILE URL
-        ========================================================
-
-        Use the official single-host tile endpoint.
-
-        We deliberately do not use:
-
-        https://{s}.tile.openstreetmap.org/...
-
+        Official OpenStreetMap tile endpoint.
         */
 
         L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -1361,9 +1381,6 @@
 
         /*
         Accuracy circle.
-
-        This visually represents the browser's
-        reported uncertainty radius.
         */
 
         accuracyCircle = L.circle([reading.latitude, reading.longitude], {
@@ -1385,10 +1402,10 @@
       }
 
       /*
-    ============================================================
-    HTML ESCAPE
-    ============================================================
-    */
+      ============================================================
+      HTML ESCAPE
+      ============================================================
+      */
 
       function escapeHTML(value) {
         if (value === null || value === undefined) {
@@ -1408,10 +1425,10 @@
       }
 
       /*
-    ============================================================
-    START
-    ============================================================
-    */
+      ============================================================
+      START
+      ============================================================
+      */
 
       window.addEventListener("load", () => {
         startLocationSearch();

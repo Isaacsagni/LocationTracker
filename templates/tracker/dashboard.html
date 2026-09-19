@@ -49,120 +49,97 @@
       .stats {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-
         gap: 20px;
-
         margin-bottom: 25px;
       }
 
       .stat-card {
         background: white;
-
         padding: 24px;
-
         border-radius: 14px;
-
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
       }
 
       .stat-title {
         color: #64748b;
-
         font-size: 14px;
-
         margin-bottom: 10px;
       }
 
       .stat-value {
         font-size: 26px;
-
         font-weight: bold;
-
         word-break: break-word;
       }
 
       .map-card {
         background: white;
-
         padding: 15px;
-
         border-radius: 14px;
-
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-
         margin-bottom: 25px;
       }
 
       .section-title {
         padding: 10px 10px 20px;
-
         font-size: 22px;
-
         font-weight: bold;
       }
 
       #map {
         width: 100%;
-
         height: 500px;
-
         border-radius: 10px;
+      }
+
+      .map-info {
+        margin-top: 12px;
+        padding: 14px;
+        background: #f8fafc;
+        border-radius: 8px;
+        color: #475569;
+        font-size: 14px;
+        line-height: 1.7;
       }
 
       .table-card {
         background: white;
-
         border-radius: 14px;
-
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-
         overflow: hidden;
-
         margin-bottom: 30px;
       }
 
       .table-title {
         padding: 22px;
-
         font-size: 24px;
-
         font-weight: bold;
-
         border-bottom: 1px solid #e2e8f0;
       }
 
       .table-wrapper {
         width: 100%;
-
         overflow-x: auto;
-
         -webkit-overflow-scrolling: touch;
       }
 
       table {
         width: 100%;
-
         min-width: 900px;
-
         border-collapse: collapse;
       }
 
       th,
       td {
         padding: 15px;
-
         text-align: left;
-
         border-bottom: 1px solid #e2e8f0;
-
         white-space: nowrap;
       }
 
       th {
         background: #f8fafc;
-
         color: #475569;
-
         font-size: 13px;
       }
 
@@ -172,42 +149,79 @@
 
       .accuracy-good {
         color: #15803d;
-
         font-weight: bold;
       }
 
       .accuracy-medium {
         color: #ca8a04;
-
         font-weight: bold;
       }
 
       .accuracy-poor {
         color: #dc2626;
-
         font-weight: bold;
       }
 
       .empty {
         padding: 40px;
-
         text-align: center;
-
         color: #64748b;
       }
 
-      .map-info {
-        margin-top: 12px;
+      .leaflet-popup-content {
+        line-height: 1.7;
+      }
 
-        padding: 12px;
+      .latest-badge {
+        display: inline-block;
+        margin-left: 8px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #dcfce7;
+        color: #166534;
+        font-size: 11px;
+        font-weight: bold;
+      }
 
-        background: #f8fafc;
+      /* LOGOUT BUTTON */
 
+      .logout-area {
+        margin-top: 20px;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .logout-button {
+        border: none;
+        background: #dc2626;
+        color: white;
+        padding: 12px 20px;
         border-radius: 8px;
-
-        color: #475569;
-
         font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .logout-button:hover {
+        background: #b91c1c;
+      }
+
+      /* IDLE WARNING */
+
+      .idle-warning {
+        display: none;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #f59e0b;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        font-size: 14px;
+        font-weight: bold;
       }
 
       @media (max-width: 800px) {
@@ -225,7 +239,6 @@
 
         .stats {
           grid-template-columns: 1fr;
-
           gap: 15px;
         }
 
@@ -244,14 +257,27 @@
         .table-title {
           font-size: 22px;
         }
+
+        .logout-area {
+          justify-content: stretch;
+        }
+
+        .logout-button {
+          width: 100%;
+        }
       }
     </style>
   </head>
 
   <body>
+    <!-- IDLE WARNING -->
+
+    <div id="idleWarning" class="idle-warning">
+      You will be logged out soon because of inactivity.
+    </div>
+
     <header class="header">
       <h1>📍 Location Dashboard</h1>
-
       <p>Authorized location-sharing records</p>
     </header>
 
@@ -295,16 +321,36 @@
 
         <div class="map-info">
           📍 Latest location:
+
           <strong> {{ latest_location.area }} </strong>
 
-          <br />
-
-          Coordinates: {{ latest_location.latitude }}, {{
-          latest_location.longitude }}
+          <span class="latest-badge"> LATEST </span>
 
           <br />
 
-          Accuracy: {{ latest_location.accuracy|floatformat }} meters
+          Coordinates:
+
+          <strong>
+            {{ latest_location.latitude }}, {{ latest_location.longitude }}
+          </strong>
+
+          <br />
+
+          Accuracy:
+
+          <strong> {{ latest_location.accuracy|floatformat }} meters </strong>
+
+          <br />
+
+          County:
+
+          <strong> {{ latest_location.county }} </strong>
+
+          <br />
+
+          Country:
+
+          <strong> {{ latest_location.country }} </strong>
         </div>
 
         {% endif %}
@@ -322,21 +368,13 @@
             <thead>
               <tr>
                 <th>ID</th>
-
                 <th>Area</th>
-
                 <th>County</th>
-
                 <th>Country</th>
-
                 <th>Latitude</th>
-
                 <th>Longitude</th>
-
                 <th>Accuracy</th>
-
                 <th>Time</th>
-
                 <th>Session</th>
               </tr>
             </thead>
@@ -353,9 +391,9 @@
 
                 <td>{{ location.country }}</td>
 
-                <td>{{ location.latitude }}</td>
+                <td>{{ location.latitude|floatformat:7 }}</td>
 
-                <td>{{ location.longitude }}</td>
+                <td>{{ location.longitude|floatformat:7 }}</td>
 
                 <td>
                   {% if location.accuracy <= 50 %}
@@ -395,7 +433,19 @@
 
         {% endif %}
       </div>
+
+      <!-- LOGOUT -->
+
+      <div class="logout-area">
+        <form method="post" action="{% url 'logout' %}" id="logoutForm">
+          {% csrf_token %}
+
+          <button type="submit" class="logout-button">🔒 Log Out</button>
+        </form>
+      </div>
     </div>
+
+    <!-- LEAFLET -->
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -403,26 +453,30 @@
 
       const locations = [
 
-          {% for location in locations %}
+        {% for location in locations %}
 
-          {
-              id: {{ location.id }},
+        {
+          id: {{ location.id }},
 
-              latitude: {{ location.latitude }},
+          latitude: {{ location.latitude }},
 
-              longitude: {{ location.longitude }},
+          longitude: {{ location.longitude }},
 
-              area: "{{ location.area|escapejs }}",
+          area: "{{ location.area|escapejs }}",
 
-              county: "{{ location.county|escapejs }}",
+          county: "{{ location.county|escapejs }}",
 
-              accuracy: {{ location.accuracy }},
+          country: "{{ location.country|escapejs }}",
 
-              time:
-                  "{{ location.device_timestamp|date:'d M Y, H:i:s' }}"
-          },
+          accuracy: {{ location.accuracy }},
 
-          {% endfor %}
+          time:
+            "{{ location.device_timestamp|date:'d M Y, H:i:s' }}"
+        }
+
+        {% if not forloop.last %},{% endif %}
+
+        {% endfor %}
 
       ];
 
@@ -430,152 +484,283 @@
       let map;
 
 
+      /*
+      --------------------------------------------------
+      MAP INITIALIZATION
+      --------------------------------------------------
+      */
+
       if (locations.length > 0) {
 
-          const latest = locations[0];
+        const latest = locations[0];
 
 
-          map = L.map("map").setView(
+        map = L.map("map").setView(
+          [
+            latest.latitude,
+            latest.longitude
+          ],
+          15
+        );
 
+
+        /*
+        --------------------------------------------------
+        ESRI WORLD STREET MAP
+        --------------------------------------------------
+        */
+
+        L.tileLayer(
+          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+          {
+            maxZoom: 19,
+
+            attribution:
+              "Tiles &copy; Esri"
+          }
+        ).addTo(map);
+
+
+        /*
+        --------------------------------------------------
+        ADD LOCATION MARKERS
+        --------------------------------------------------
+        */
+
+        locations.forEach(
+          function(location, index) {
+
+            const marker = L.marker(
               [
-                  latest.latitude,
-                  latest.longitude
+                location.latitude,
+                location.longitude
+              ]
+            ).addTo(map);
+
+
+            const latestLabel =
+              index === 0
+                ? "<br><strong>⭐ Latest Location</strong>"
+                : "";
+
+
+            marker.bindPopup(
+
+              `
+              <strong>
+                📍 ${location.area}
+              </strong>
+
+              ${latestLabel}
+
+              <br><br>
+
+              <strong>County:</strong>
+              ${location.county}
+
+              <br>
+
+              <strong>Country:</strong>
+              ${location.country}
+
+              <br>
+
+              <strong>Latitude:</strong>
+              ${location.latitude.toFixed(7)}
+
+              <br>
+
+              <strong>Longitude:</strong>
+              ${location.longitude.toFixed(7)}
+
+              <br>
+
+              <strong>Accuracy:</strong>
+              ${Math.round(location.accuracy)}
+              meters
+
+              <br>
+
+              <strong>Time:</strong>
+              ${location.time}
+              `
+            );
+
+
+            /*
+            ------------------------------------------
+            ACCURACY CIRCLE
+            ------------------------------------------
+            */
+
+            L.circle(
+              [
+                location.latitude,
+                location.longitude
               ],
-
-              15
-
-          );
-
-
-          L.tileLayer(
-
-              "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-
               {
+                radius: location.accuracy,
 
-                  maxZoom: 19,
+                fillOpacity: 0.08,
 
-                  attribution:
-                      "&copy; OpenStreetMap contributors"
-
+                weight: 1
               }
-
-          ).addTo(map);
-
-
-          locations.forEach(
-
-              function(location) {
-
-
-                  const marker = L.marker(
-
-                      [
-                          location.latitude,
-                          location.longitude
-                      ]
-
-                  ).addTo(map);
-
-
-                  marker.bindPopup(`
-
-                      <strong>
-                          📍 ${location.area}
-                      </strong>
-
-                      <br><br>
-
-                      County:
-                      ${location.county}
-
-                      <br>
-
-                      Latitude:
-                      ${location.latitude}
-
-                      <br>
-
-                      Longitude:
-                      ${location.longitude}
-
-                      <br>
-
-                      Accuracy:
-                      ${Math.round(location.accuracy)}
-                      meters
-
-                      <br>
-
-                      Time:
-                      ${location.time}
-
-                  `);
-
-
-              }
-
-          );
-
-
-          if (locations.length > 1) {
-
-
-              const coordinates = locations.map(
-
-                  function(location) {
-
-                      return [
-
-                          location.latitude,
-
-                          location.longitude
-
-                      ];
-
-                  }
-
-              );
-
-
-              L.polyline(
-
-                  coordinates
-
-              ).addTo(map);
-
+            ).addTo(map);
 
           }
+        );
+
+
+        /*
+        --------------------------------------------------
+        LOCATION PATH
+        --------------------------------------------------
+        */
+
+        if (locations.length > 1) {
+
+          const coordinates =
+            locations.map(
+              function(location) {
+
+                return [
+                  location.latitude,
+                  location.longitude
+                ];
+
+              }
+            );
+
+
+          L.polyline(
+            coordinates,
+            {
+              weight: 4
+            }
+          ).addTo(map);
+
+        }
 
 
       } else {
 
 
-          map = L.map("map").setView(
+        /*
+        --------------------------------------------------
+        EMPTY MAP
+        --------------------------------------------------
+        */
 
-              [-0.68, 34.79],
+        map = L.map("map").setView(
+          [-0.68, 34.79],
+          12
+        );
 
-              12
 
-          );
+        L.tileLayer(
+          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+          {
+            maxZoom: 19,
 
-
-          L.tileLayer(
-
-              "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-
-              {
-
-                  maxZoom: 19,
-
-                  attribution:
-                      "&copy; OpenStreetMap contributors"
-
-              }
-
-          ).addTo(map);
+            attribution:
+              "Tiles &copy; Esri"
+          }
+        ).addTo(map);
 
       }
+
+
+      /*
+      ==================================================
+      1 MINUTE IDLE LOGOUT
+      ==================================================
+      */
+
+      const IDLE_LIMIT = 60 * 1000;
+
+      const WARNING_TIME = 10 * 1000;
+
+      let idleTimer;
+
+      let warningTimer;
+
+
+      function resetIdleTimer() {
+
+        clearTimeout(idleTimer);
+
+        clearTimeout(warningTimer);
+
+
+        const warning =
+          document.getElementById("idleWarning");
+
+
+        warning.style.display = "none";
+
+
+        /*
+        Show warning after 50 seconds
+        */
+
+        warningTimer = setTimeout(
+          function() {
+
+            warning.style.display = "block";
+
+          },
+          IDLE_LIMIT - WARNING_TIME
+        );
+
+
+        /*
+        Logout after 60 seconds
+        */
+
+        idleTimer = setTimeout(
+          function() {
+
+            document
+              .getElementById("logoutForm")
+              .submit();
+
+          },
+          IDLE_LIMIT
+        );
+
+      }
+
+
+      /*
+      Reset the timer whenever
+      the user interacts with the page.
+      */
+
+      [
+        "mousemove",
+        "mousedown",
+        "keydown",
+        "touchstart",
+        "scroll",
+        "click"
+      ].forEach(
+        function(eventName) {
+
+          document.addEventListener(
+            eventName,
+            resetIdleTimer,
+            true
+          );
+
+        }
+      );
+
+
+      /*
+      Start timer when dashboard loads.
+      */
+
+      resetIdleTimer();
     </script>
   </body>
 </html>
