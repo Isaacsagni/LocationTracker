@@ -2,7 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Location Dashboard</title>
@@ -41,36 +40,83 @@
       }
 
       .container {
-        max-width: 1400px;
+        max-width: 1450px;
         margin: 25px auto;
         padding: 0 20px;
       }
 
+      .section-heading {
+        margin: 30px 0 15px;
+        font-size: 22px;
+        font-weight: bold;
+      }
+
+      /* STATISTICS */
+
       .stats {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 15px;
         margin-bottom: 25px;
       }
 
       .stat-card {
         background: white;
-        padding: 24px;
+        padding: 22px;
         border-radius: 14px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
       }
 
       .stat-title {
         color: #64748b;
-        font-size: 14px;
+        font-size: 13px;
         margin-bottom: 10px;
+        font-weight: bold;
       }
 
       .stat-value {
-        font-size: 26px;
+        font-size: 30px;
         font-weight: bold;
-        word-break: break-word;
       }
+
+      /* DEVICE OVERVIEW */
+
+      .device-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-bottom: 25px;
+      }
+
+      .device-card {
+        background: white;
+        padding: 20px;
+        border-radius: 14px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      }
+
+      .device-card h3 {
+        margin: 0 0 15px;
+        font-size: 17px;
+      }
+
+      .device-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 14px;
+      }
+
+      .device-row:last-child {
+        border-bottom: none;
+      }
+
+      .device-count {
+        font-weight: bold;
+      }
+
+      /* MAP */
 
       .map-card {
         background: white;
@@ -99,8 +145,21 @@
         border-radius: 8px;
         color: #475569;
         font-size: 14px;
-        line-height: 1.7;
+        line-height: 1.8;
       }
+
+      .latest-badge {
+        display: inline-block;
+        margin-left: 8px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #dcfce7;
+        color: #166534;
+        font-size: 11px;
+        font-weight: bold;
+      }
+
+      /* TABLE */
 
       .table-card {
         background: white;
@@ -120,18 +179,17 @@
       .table-wrapper {
         width: 100%;
         overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
       }
 
       table {
         width: 100%;
-        min-width: 900px;
+        min-width: 1200px;
         border-collapse: collapse;
       }
 
       th,
       td {
-        padding: 15px;
+        padding: 14px;
         text-align: left;
         border-bottom: 1px solid #e2e8f0;
         white-space: nowrap;
@@ -162,28 +220,22 @@
         font-weight: bold;
       }
 
+      .device-badge {
+        display: inline-block;
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: #e2e8f0;
+        font-weight: bold;
+        font-size: 12px;
+      }
+
       .empty {
         padding: 40px;
         text-align: center;
         color: #64748b;
       }
 
-      .leaflet-popup-content {
-        line-height: 1.7;
-      }
-
-      .latest-badge {
-        display: inline-block;
-        margin-left: 8px;
-        padding: 3px 8px;
-        border-radius: 999px;
-        background: #dcfce7;
-        color: #166534;
-        font-size: 11px;
-        font-weight: bold;
-      }
-
-      /* LOGOUT BUTTON */
+      /* LOGOUT */
 
       .logout-area {
         margin-top: 20px;
@@ -224,7 +276,21 @@
         font-weight: bold;
       }
 
-      @media (max-width: 800px) {
+      @media (max-width: 1000px) {
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .device-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .stats {
+          grid-template-columns: 1fr;
+        }
+
         .header {
           padding: 20px;
         }
@@ -237,29 +303,8 @@
           padding: 0 15px;
         }
 
-        .stats {
-          grid-template-columns: 1fr;
-          gap: 15px;
-        }
-
-        .stat-card {
-          padding: 22px;
-        }
-
-        .stat-value {
-          font-size: 24px;
-        }
-
         #map {
           height: 420px;
-        }
-
-        .table-title {
-          font-size: 22px;
-        }
-
-        .logout-area {
-          justify-content: stretch;
         }
 
         .logout-button {
@@ -270,47 +315,112 @@
   </head>
 
   <body>
-    <!-- IDLE WARNING -->
-
     <div id="idleWarning" class="idle-warning">
       You will be logged out soon because of inactivity.
     </div>
 
     <header class="header">
       <h1>📍 Location Dashboard</h1>
-      <p>Authorized location-sharing records</p>
+      <p>Authorized location-sharing records and device activity</p>
     </header>
 
     <div class="container">
-      <!-- STATISTICS -->
+      <!-- ========================= -->
+      <!-- MAIN STATISTICS -->
+      <!-- ========================= -->
+
+      <div class="section-heading">Dashboard Overview</div>
 
       <div class="stats">
         <div class="stat-card">
-          <div class="stat-title">TOTAL LOCATION RECORDS</div>
-
+          <div class="stat-title">TOTAL LOCATIONS</div>
           <div class="stat-value">{{ total_locations }}</div>
         </div>
 
         <div class="stat-card">
-          <div class="stat-title">LATEST AREA</div>
-
-          <div class="stat-value">
-            {% if latest_location %} {{ latest_location.area }} {% else %} No
-            location yet {% endif %}
-          </div>
+          <div class="stat-title">📱 PHONES</div>
+          <div class="stat-value">{{ total_phones }}</div>
         </div>
 
         <div class="stat-card">
-          <div class="stat-title">LATEST ACCURACY</div>
+          <div class="stat-title">💻 COMPUTERS</div>
+          <div class="stat-value">{{ total_computers }}</div>
+        </div>
 
-          <div class="stat-value">
-            {% if latest_location %} {{ latest_location.accuracy|floatformat }}
-            m {% else %} No location yet {% endif %}
-          </div>
+        <div class="stat-card">
+          <div class="stat-title">📲 TABLETS</div>
+          <div class="stat-value">{{ total_tablets }}</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-title">🔗 OTHER DEVICES</div>
+          <div class="stat-value">{{ total_other_devices }}</div>
         </div>
       </div>
 
+      <!-- ========================= -->
+      <!-- DEVICE INTELLIGENCE -->
+      <!-- ========================= -->
+
+      <div class="section-heading">Device Intelligence</div>
+
+      <div class="device-grid">
+        <div class="device-card">
+          <h3>📱 Device Types</h3>
+
+          {% if device_statistics %} {% for item in device_statistics %}
+
+          <div class="device-row">
+            <span>{{ item.device_type }}</span>
+            <span class="device-count"> {{ item.total }} </span>
+          </div>
+
+          {% endfor %} {% else %}
+
+          <div class="empty">No device information yet.</div>
+
+          {% endif %}
+        </div>
+
+        <div class="device-card">
+          <h3>🌐 Browsers</h3>
+
+          {% if browser_statistics %} {% for item in browser_statistics %}
+
+          <div class="device-row">
+            <span>{{ item.browser }}</span>
+            <span class="device-count"> {{ item.total }} </span>
+          </div>
+
+          {% endfor %} {% else %}
+
+          <div class="empty">No browser information yet.</div>
+
+          {% endif %}
+        </div>
+
+        <div class="device-card">
+          <h3>💻 Operating Systems</h3>
+
+          {% if operating_system_statistics %} {% for item in
+          operating_system_statistics %}
+
+          <div class="device-row">
+            <span>{{ item.operating_system }}</span>
+            <span class="device-count"> {{ item.total }} </span>
+          </div>
+
+          {% endfor %} {% else %}
+
+          <div class="empty">No operating-system information yet.</div>
+
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- ========================= -->
       <!-- MAP -->
+      <!-- ========================= -->
 
       <div class="map-card">
         <div class="section-title">Location Map</div>
@@ -351,15 +461,37 @@
           Country:
 
           <strong> {{ latest_location.country }} </strong>
+
+          <br />
+
+          Device:
+
+          <strong> {{ latest_location.device_type|default:"Unknown" }} </strong>
+
+          <br />
+
+          Operating System:
+
+          <strong>
+            {{ latest_location.operating_system|default:"Unknown" }}
+          </strong>
+
+          <br />
+
+          Browser:
+
+          <strong> {{ latest_location.browser|default:"Unknown" }} </strong>
         </div>
 
         {% endif %}
       </div>
 
+      <!-- ========================= -->
       <!-- LOCATION HISTORY -->
+      <!-- ========================= -->
 
       <div class="table-card">
-        <div class="table-title">Location History</div>
+        <div class="table-title">Location & Device History</div>
 
         {% if locations %}
 
@@ -368,6 +500,9 @@
             <thead>
               <tr>
                 <th>ID</th>
+                <th>Device</th>
+                <th>Operating System</th>
+                <th>Browser</th>
                 <th>Area</th>
                 <th>County</th>
                 <th>Country</th>
@@ -384,6 +519,19 @@
 
               <tr>
                 <td>{{ location.id }}</td>
+
+                <td>
+                  <span class="device-badge">
+                    {% if location.device_type == "Phone" %} 📱 Phone {% elif
+                    location.device_type == "Computer" %} 💻 Computer {% elif
+                    location.device_type == "Tablet" %} 📲 Tablet {% else %} 🔗
+                    {{ location.device_type|default:"Unknown" }} {% endif %}
+                  </span>
+                </td>
+
+                <td>{{ location.operating_system|default:"Unknown" }}</td>
+
+                <td>{{ location.browser|default:"Unknown" }}</td>
 
                 <td>📍 {{ location.area }}</td>
 
@@ -434,7 +582,9 @@
         {% endif %}
       </div>
 
+      <!-- ========================= -->
       <!-- LOGOUT -->
+      <!-- ========================= -->
 
       <div class="logout-area">
         <form method="post" action="{% url 'logout' %}" id="logoutForm">
@@ -453,30 +603,39 @@
 
       const locations = [
 
-        {% for location in locations %}
+      {% for location in locations %}
 
-        {
-          id: {{ location.id }},
+      {
+        id: {{ location.id }},
 
-          latitude: {{ location.latitude }},
+        latitude: {{ location.latitude }},
 
-          longitude: {{ location.longitude }},
+        longitude: {{ location.longitude }},
 
-          area: "{{ location.area|escapejs }}",
+        area: "{{ location.area|escapejs }}",
 
-          county: "{{ location.county|escapejs }}",
+        county: "{{ location.county|escapejs }}",
 
-          country: "{{ location.country|escapejs }}",
+        country: "{{ location.country|escapejs }}",
 
-          accuracy: {{ location.accuracy }},
+        accuracy: {{ location.accuracy }},
 
-          time:
-            "{{ location.device_timestamp|date:'d M Y, H:i:s' }}"
-        }
+        device_type:
+          "{{ location.device_type|default:'Unknown'|escapejs }}",
 
-        {% if not forloop.last %},{% endif %}
+        operating_system:
+          "{{ location.operating_system|default:'Unknown'|escapejs }}",
 
-        {% endfor %}
+        browser:
+          "{{ location.browser|default:'Unknown'|escapejs }}",
+
+        time:
+          "{{ location.device_timestamp|date:'d M Y, H:i:s' }}"
+      }
+
+      {% if not forloop.last %},{% endif %}
+
+      {% endfor %}
 
       ];
 
@@ -485,15 +644,14 @@
 
 
       /*
-      --------------------------------------------------
+      ==================================================
       MAP INITIALIZATION
-      --------------------------------------------------
+      ==================================================
       */
 
       if (locations.length > 0) {
 
         const latest = locations[0];
-
 
         map = L.map("map").setView(
           [
@@ -503,12 +661,6 @@
           15
         );
 
-
-        /*
-        --------------------------------------------------
-        ESRI WORLD STREET MAP
-        --------------------------------------------------
-        */
 
         L.tileLayer(
           "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
@@ -522,9 +674,9 @@
 
 
         /*
-        --------------------------------------------------
-        ADD LOCATION MARKERS
-        --------------------------------------------------
+        ================================================
+        LOCATION MARKERS
+        ================================================
         */
 
         locations.forEach(
@@ -552,6 +704,21 @@
               </strong>
 
               ${latestLabel}
+
+              <br><br>
+
+              <strong>Device:</strong>
+              ${location.device_type}
+
+              <br>
+
+              <strong>Operating System:</strong>
+              ${location.operating_system}
+
+              <br>
+
+              <strong>Browser:</strong>
+              ${location.browser}
 
               <br><br>
 
@@ -588,9 +755,9 @@
 
 
             /*
-            ------------------------------------------
+            ==============================================
             ACCURACY CIRCLE
-            ------------------------------------------
+            ==============================================
             */
 
             L.circle(
@@ -612,9 +779,9 @@
 
 
         /*
-        --------------------------------------------------
+        ==============================================
         LOCATION PATH
-        --------------------------------------------------
+        ==============================================
         */
 
         if (locations.length > 1) {
@@ -644,11 +811,10 @@
 
       } else {
 
-
         /*
-        --------------------------------------------------
+        ==============================================
         EMPTY MAP
-        --------------------------------------------------
+        ==============================================
         */
 
         map = L.map("map").setView(
@@ -699,10 +865,6 @@
         warning.style.display = "none";
 
 
-        /*
-        Show warning after 50 seconds
-        */
-
         warningTimer = setTimeout(
           function() {
 
@@ -712,10 +874,6 @@
           IDLE_LIMIT - WARNING_TIME
         );
 
-
-        /*
-        Logout after 60 seconds
-        */
 
         idleTimer = setTimeout(
           function() {
@@ -730,11 +888,6 @@
 
       }
 
-
-      /*
-      Reset the timer whenever
-      the user interacts with the page.
-      */
 
       [
         "mousemove",
@@ -755,10 +908,6 @@
         }
       );
 
-
-      /*
-      Start timer when dashboard loads.
-      */
 
       resetIdleTimer();
     </script>

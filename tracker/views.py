@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
@@ -187,6 +188,79 @@ def dashboard(request):
 
     latest_location = locations.first()
 
+    # ---------------------------------------------------------
+    # BASIC LOCATION STATISTICS
+    # ---------------------------------------------------------
+
+    total_locations = locations.count()
+
+    # ---------------------------------------------------------
+    # DEVICE STATISTICS
+    # ---------------------------------------------------------
+
+    total_phones = locations.filter(
+        device_type__iexact="Phone"
+    ).count()
+
+    total_computers = locations.filter(
+        device_type__iexact="Computer"
+    ).count()
+
+    total_tablets = locations.filter(
+        device_type__iexact="Tablet"
+    ).count()
+
+    total_other_devices = locations.filter(
+        Q(device_type__isnull=True)
+        | Q(device_type="")
+        | ~Q(device_type__iexact="Phone"),
+        ~Q(device_type__iexact="Computer"),
+        ~Q(device_type__iexact="Tablet"),
+    ).count()
+
+    # ---------------------------------------------------------
+    # BROWSER STATISTICS
+    # ---------------------------------------------------------
+
+    browser_statistics = (
+        locations
+        .exclude(browser__isnull=True)
+        .exclude(browser="")
+        .values("browser")
+        .annotate(total=Count("id"))
+        .order_by("-total")
+    )
+
+    # ---------------------------------------------------------
+    # OPERATING SYSTEM STATISTICS
+    # ---------------------------------------------------------
+
+    operating_system_statistics = (
+        locations
+        .exclude(operating_system__isnull=True)
+        .exclude(operating_system="")
+        .values("operating_system")
+        .annotate(total=Count("id"))
+        .order_by("-total")
+    )
+
+    # ---------------------------------------------------------
+    # DEVICE TYPE STATISTICS
+    # ---------------------------------------------------------
+
+    device_statistics = (
+        locations
+        .exclude(device_type__isnull=True)
+        .exclude(device_type="")
+        .values("device_type")
+        .annotate(total=Count("id"))
+        .order_by("-total")
+    )
+
+    # ---------------------------------------------------------
+    # DASHBOARD CONTEXT
+    # ---------------------------------------------------------
+
     context = {
 
         "locations": locations,
@@ -195,8 +269,30 @@ def dashboard(request):
             latest_location,
 
         "total_locations":
-            locations.count(),
+            total_locations,
 
+        # Device totals
+        "total_phones":
+            total_phones,
+
+        "total_computers":
+            total_computers,
+
+        "total_tablets":
+            total_tablets,
+
+        "total_other_devices":
+            total_other_devices,
+
+        # Device/browser/OS breakdown
+        "device_statistics":
+            device_statistics,
+
+        "browser_statistics":
+            browser_statistics,
+
+        "operating_system_statistics":
+            operating_system_statistics,
     }
 
     return render(
