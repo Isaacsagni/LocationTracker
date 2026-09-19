@@ -33,6 +33,25 @@ class LocationRecord(models.Model):
 
     device_timestamp = models.DateTimeField()
 
+    device_type = models.CharField(
+        max_length=100,
+        blank=True
+    )
+
+    operating_system = models.CharField(
+        max_length=100,
+        blank=True
+    )
+
+    browser = models.CharField(
+        max_length=100,
+        blank=True
+    )
+
+    user_agent = models.TextField(
+        blank=True
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True
     )

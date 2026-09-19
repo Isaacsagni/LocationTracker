@@ -49,6 +49,26 @@ def save_location(request):
             "device_timestamp"
         )
 
+        # Device information
+        device_type = data.get(
+            "device_type",
+            ""
+        )
+
+        operating_system = data.get(
+            "operating_system",
+            ""
+        )
+
+        browser = data.get(
+            "browser",
+            ""
+        )
+
+        user_agent = data.get(
+            "user_agent",
+            ""
+        )
 
         if not session_id:
 
@@ -59,7 +79,6 @@ def save_location(request):
                 },
                 status=400
             )
-
 
         if latitude is None or longitude is None:
 
@@ -72,7 +91,6 @@ def save_location(request):
                 status=400
             )
 
-
         if accuracy is None:
 
             return JsonResponse(
@@ -82,7 +100,6 @@ def save_location(request):
                 },
                 status=400
             )
-
 
         if not device_timestamp:
 
@@ -94,16 +111,12 @@ def save_location(request):
                 status=400
             )
 
-
         timestamp = datetime.fromisoformat(
-
             device_timestamp.replace(
                 "Z",
                 "+00:00"
             )
-
         )
-
 
         location = LocationRecord.objects.create(
 
@@ -123,8 +136,14 @@ def save_location(request):
 
             device_timestamp=timestamp,
 
-        )
+            device_type=device_type,
 
+            operating_system=operating_system,
+
+            browser=browser,
+
+            user_agent=user_agent,
+        )
 
         return JsonResponse(
             {
@@ -137,7 +156,6 @@ def save_location(request):
             }
         )
 
-
     except json.JSONDecodeError:
 
         return JsonResponse(
@@ -147,7 +165,6 @@ def save_location(request):
             },
             status=400
         )
-
 
     except Exception as error:
 
@@ -168,9 +185,7 @@ def dashboard(request):
         "-id"
     )
 
-
     latest_location = locations.first()
-
 
     context = {
 
@@ -184,13 +199,8 @@ def dashboard(request):
 
     }
 
-
     return render(
-
         request,
-
         "tracker/dashboard.html",
-
         context
-
     )
