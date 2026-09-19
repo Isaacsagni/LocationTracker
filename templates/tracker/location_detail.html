@@ -1,0 +1,925 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Location Record #{{ location.id }}</title>
+
+    <link
+      href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #f1f5f9;
+        color: #0f172a;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .header {
+        background: #111827;
+        color: white;
+        padding: 20px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .title {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+      }
+
+      .subtitle {
+        margin: 6px 0 0;
+        color: #cbd5e1;
+        font-size: 13px;
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .button {
+        border: none;
+        text-decoration: none;
+        padding: 9px 15px;
+        border-radius: 7px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-block;
+      }
+
+      .back-button {
+        background: #334155;
+        color: white;
+      }
+
+      .print-button {
+        background: #2563eb;
+        color: white;
+      }
+
+      .delete-button {
+        background: #dc2626;
+        color: white;
+      }
+
+      .container {
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 25px;
+      }
+
+      .section {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        margin-bottom: 22px;
+        overflow: hidden;
+      }
+
+      .section-header {
+        padding: 18px 20px;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 17px;
+        font-weight: 700;
+      }
+
+      .section-body {
+        padding: 20px;
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 12px;
+      }
+
+      .info-item {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 9px;
+        padding: 12px;
+        min-width: 0;
+      }
+
+      .info-item.full {
+        grid-column: 1 / -1;
+      }
+
+      .info-label {
+        color: #64748b;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+        letter-spacing: 0.3px;
+      }
+
+      .info-value {
+        color: #0f172a;
+        font-size: 14px;
+        line-height: 1.5;
+        word-break: break-word;
+      }
+
+      .monospace {
+        font-family: Consolas, Monaco, monospace;
+        font-size: 12px;
+      }
+
+      /* =========================
+           COORDINATES
+        ========================= */
+
+      .coordinate-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .coordinate-box {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 9px;
+        padding: 14px;
+      }
+
+      .coordinate-label {
+        color: #475569;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 7px;
+      }
+
+      .coordinate-value {
+        color: #1d4ed8;
+        font-size: 15px;
+        font-weight: 700;
+        word-break: break-word;
+      }
+
+      /* =========================
+           MAP
+        ========================= */
+
+      .map-wrapper {
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #e2e8f0;
+      }
+
+      .map-title {
+        background: #f8fafc;
+        border-bottom: 1px solid #cbd5e1;
+        padding: 12px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .map-title strong {
+        font-size: 14px;
+      }
+
+      .map-title span {
+        color: #64748b;
+        font-size: 12px;
+      }
+
+      #location-map {
+        width: 100%;
+        height: 550px;
+      }
+
+      .map-error {
+        height: 550px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 30px;
+        color: #64748b;
+        background: #f8fafc;
+      }
+
+      /* =========================
+           FOOTER
+        ========================= */
+
+      .footer {
+        text-align: center;
+        color: #64748b;
+        font-size: 12px;
+        padding: 10px 0 30px;
+      }
+
+      /* =========================
+           RESPONSIVE
+        ========================= */
+
+      @media (max-width: 900px) {
+        .coordinate-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .header-actions {
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .container {
+          padding: 12px;
+        }
+
+        .header {
+          padding: 16px;
+        }
+
+        .section-body {
+          padding: 14px;
+        }
+
+        #location-map {
+          height: 430px;
+        }
+      }
+
+      /* =========================
+           PRINT
+        ========================= */
+
+      @media print {
+        body {
+          background: white;
+        }
+
+        .header {
+          background: white;
+          color: black;
+          border-bottom: 2px solid #111827;
+        }
+
+        .subtitle {
+          color: #475569;
+        }
+
+        .header-actions {
+          display: none;
+        }
+
+        .container {
+          max-width: none;
+          padding: 0;
+        }
+
+        .section {
+          break-inside: avoid;
+        }
+
+        #location-map {
+          height: 450px;
+        }
+
+        .footer {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- =====================================================
+     HEADER
+===================================================== -->
+
+    <header class="header">
+      <div>
+        <h1 class="title">📍 Location Record #{{ location.id }}</h1>
+
+        <p class="subtitle">Detailed location and device information</p>
+      </div>
+
+      <div class="header-actions">
+        <a href="{% url 'tracker:dashboard' %}" class="button back-button">
+          ← Back
+        </a>
+
+        <button
+          type="button"
+          class="button print-button"
+          onclick="window.print()"
+        >
+          🖨 Print Report
+        </button>
+
+        <form
+          method="post"
+          action="{% url 'tracker:delete_location' location.id %}"
+          onsubmit="return confirm('Delete this location record?');"
+          style="display: inline"
+        >
+          {% csrf_token %}
+
+          <button type="submit" class="button delete-button">Delete</button>
+        </form>
+      </div>
+    </header>
+
+    <main class="container">
+      <!-- =================================================
+         LOCATION INFORMATION
+    ================================================== -->
+
+      <section class="section">
+        <div class="section-header">📍 Location Information</div>
+
+        <div class="section-body">
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Country</div>
+
+              <div class="info-value">{{ location.country|default:"N/A" }}</div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">State</div>
+
+              <div class="info-value">{{ location.state|default:"N/A" }}</div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">County</div>
+
+              <div class="info-value">{{ location.county|default:"N/A" }}</div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Municipality</div>
+
+              <div class="info-value">
+                {{ location.municipality|default:"N/A" }}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">City</div>
+
+              <div class="info-value">{{ location.city|default:"N/A" }}</div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">City District</div>
+
+              <div class="info-value">
+                {{ location.city_district|default:"N/A" }}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Town</div>
+
+              <div class="info-value">{{ location.town|default:"N/A" }}</div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Ward</div>
+
+              <div class="info-value">{{ location.ward|default:"N/A" }}</div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Neighbourhood</div>
+
+              <div class="info-value">
+                {{ location.neighbourhood|default:"N/A" }}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Suburb</div>
+
+              <div class="info-value">{{ location.suburb|default:"N/A" }}</div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Village</div>
+
+              <div class="info-value">{{ location.village|default:"N/A" }}</div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Area</div>
+
+              <div class="info-value">{{ location.area|default:"N/A" }}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================
+         COORDINATES
+    ================================================== -->
+
+      <section class="section">
+        <div class="section-header">🛰 Coordinates</div>
+
+        <div class="section-body">
+          <div class="coordinate-grid">
+            <!-- LATITUDE -->
+
+            <div class="coordinate-box">
+              <div class="coordinate-label">Latitude</div>
+
+              <div class="coordinate-value">{{ location.latitude }}</div>
+            </div>
+
+            <!-- LONGITUDE -->
+
+            <div class="coordinate-box">
+              <div class="coordinate-label">Longitude</div>
+
+              <div class="coordinate-value">{{ location.longitude }}</div>
+            </div>
+
+            <!-- ACCURACY -->
+
+            <div class="coordinate-box">
+              <div class="coordinate-label">Accuracy</div>
+
+              <div class="coordinate-value">
+                {{ location.accuracy|floatformat:2 }} meters
+              </div>
+            </div>
+          </div>
+
+          <!-- =================================================
+                 MAP
+            ================================================== -->
+
+          <div class="map-wrapper">
+            <div class="map-title">
+              <strong> 🗺 Location Map </strong>
+
+              <span> Recorded position </span>
+            </div>
+
+            <div
+              id="location-map"
+              data-latitude="{{ location.latitude }}"
+              data-longitude="{{ location.longitude }}"
+              data-accuracy="{{ location.accuracy }}"
+            ></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================
+         DEVICE INFORMATION
+    ================================================== -->
+
+      <section class="section">
+        <div class="section-header">📱 Device Information</div>
+
+        <div class="section-body">
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Device Type</div>
+
+              <div class="info-value">
+                {{ location.device_type|default:"N/A" }}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Device Model</div>
+
+              <div class="info-value">
+                {{ location.device_model|default:"N/A" }}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Operating System</div>
+
+              <div class="info-value">
+                {{ location.operating_system|default:"N/A" }}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">OS Version</div>
+
+              <div class="info-value">
+                {{ location.os_version|default:"N/A" }}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Browser</div>
+
+              <div class="info-value">{{ location.browser|default:"N/A" }}</div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Browser Version</div>
+
+              <div class="info-value">
+                {{ location.browser_version|default:"N/A" }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================
+         TECHNICAL INFORMATION
+    ================================================== -->
+
+      <section class="section">
+        <div class="section-header">⚙ Technical Information</div>
+
+        <div class="section-body">
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Screen Width</div>
+
+              <div class="info-value">
+                {% if location.screen_width %} {{ location.screen_width }} px {%
+                else %} N/A {% endif %}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Screen Height</div>
+
+              <div class="info-value">
+                {% if location.screen_height %} {{ location.screen_height }} px
+                {% else %} N/A {% endif %}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Pixel Ratio</div>
+
+              <div class="info-value">
+                {{ location.pixel_ratio|default:"N/A" }}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Platform</div>
+
+              <div class="info-value">
+                {{ location.platform|default:"N/A" }}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Language</div>
+
+              <div class="info-value">
+                {{ location.language|default:"N/A" }}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Client Hint Platform</div>
+
+              <div class="info-value">
+                {{ location.client_hint_platform|default:"N/A" }}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Client Hint Platform Version</div>
+
+              <div class="info-value">
+                {{ location.client_hint_platform_version|default:"N/A" }}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Architecture</div>
+
+              <div class="info-value">
+                {{ location.architecture|default:"N/A" }}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Bitness</div>
+
+              <div class="info-value">{{ location.bitness|default:"N/A" }}</div>
+            </div>
+
+            <div class="info-item full">
+              <div class="info-label">User Agent</div>
+
+              <div class="info-value monospace">
+                {{ location.user_agent|default:"N/A" }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================
+         DATE & TIME
+    ================================================== -->
+
+      <section class="section">
+        <div class="section-header">🕐 Date &amp; Time</div>
+
+        <div class="section-body">
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Device Timestamp</div>
+
+              <div class="info-value">{{ location.device_timestamp }}</div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Database Created At</div>
+
+              <div class="info-value">{{ location.created_at }}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================
+         RECORD INFORMATION
+    ================================================== -->
+
+      <section class="section">
+        <div class="section-header">🗂 Record Information</div>
+
+        <div class="section-body">
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Record ID</div>
+
+              <div class="info-value">#{{ location.id }}</div>
+            </div>
+
+            <div class="info-item full">
+              <div class="info-label">Session ID</div>
+
+              <div class="info-value monospace">
+                {{ location.session_id|default:"N/A" }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer">Location Record #{{ location.id }}</div>
+    </main>
+
+    <!-- =====================================================
+     MAPLIBRE
+===================================================== -->
+
+    <script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const mapElement = document.getElementById("location-map");
+
+        if (!mapElement) {
+          return;
+        }
+
+        const latitude = parseFloat(mapElement.dataset.latitude);
+
+        const longitude = parseFloat(mapElement.dataset.longitude);
+
+        const accuracy = parseFloat(mapElement.dataset.accuracy);
+
+        if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
+          mapElement.innerHTML = `
+                <div class="map-error">
+                    <div>
+                        <strong>Map unavailable</strong>
+                        <br><br>
+                        Valid coordinates were not found.
+                    </div>
+                </div>
+            `;
+
+          return;
+        }
+
+        const map = new maplibregl.Map({
+          container: "location-map",
+
+          style: "https://tiles.openfreemap.org/styles/liberty",
+
+          center: [longitude, latitude],
+
+          zoom: 17,
+
+          attributionControl: true,
+        });
+
+        map.addControl(new maplibregl.NavigationControl(), "top-right");
+
+        map.addControl(new maplibregl.FullscreenControl(), "top-right");
+
+        const marker = new maplibregl.Marker({
+          color: "#dc2626",
+        })
+
+          .setLngLat([longitude, latitude])
+
+          .setPopup(
+            new maplibregl.Popup({
+              offset: 25,
+            }).setHTML(`
+
+                    <div
+                        style="
+                            font-family: Arial, sans-serif;
+                            min-width: 190px;
+                        "
+                    >
+
+                        <strong>
+                            Location Record #{{ location.id }}
+                        </strong>
+
+                        <hr
+                            style="
+                                border:0;
+                                border-top:1px solid #ddd;
+                                margin:8px 0;
+                            "
+                        >
+
+                        <div>
+                            <strong>Latitude:</strong>
+                            ${latitude}
+                        </div>
+
+                        <div>
+                            <strong>Longitude:</strong>
+                            ${longitude}
+                        </div>
+
+                        <div>
+                            <strong>Accuracy:</strong>
+                            ${
+                              Number.isNaN(accuracy)
+                                ? "N/A"
+                                : accuracy.toFixed(2) + " meters"
+                            }
+                        </div>
+
+                    </div>
+
+                `),
+          )
+
+          .addTo(map);
+
+        /*
+         * Create accuracy circle
+         */
+
+        function createCircle(center, radiusInMeters, points = 64) {
+          const coords = [];
+
+          const earthRadius = 6371008.8;
+
+          const lat = (center[1] * Math.PI) / 180;
+
+          const lon = (center[0] * Math.PI) / 180;
+
+          for (let i = 0; i <= points; i++) {
+            const angle = (i / points) * 2 * Math.PI;
+
+            const angularDistance = radiusInMeters / earthRadius;
+
+            const pointLat = Math.asin(
+              Math.sin(lat) * Math.cos(angularDistance) +
+                Math.cos(lat) * Math.sin(angularDistance) * Math.cos(angle),
+            );
+
+            const pointLon =
+              lon +
+              Math.atan2(
+                Math.sin(angle) * Math.sin(angularDistance) * Math.cos(lat),
+
+                Math.cos(angularDistance) - Math.sin(lat) * Math.sin(pointLat),
+              );
+
+            coords.push([
+              (pointLon * 180) / Math.PI,
+
+              (pointLat * 180) / Math.PI,
+            ]);
+          }
+
+          return {
+            type: "Feature",
+
+            geometry: {
+              type: "Polygon",
+
+              coordinates: [coords],
+            },
+          };
+        }
+
+        map.on("load", function () {
+          if (!Number.isNaN(accuracy) && accuracy > 0) {
+            map.addSource("accuracy-area", {
+              type: "geojson",
+
+              data: createCircle([longitude, latitude], accuracy),
+            });
+
+            map.addLayer({
+              id: "accuracy-fill",
+
+              type: "fill",
+
+              source: "accuracy-area",
+
+              paint: {
+                "fill-color": "#2563eb",
+
+                "fill-opacity": 0.16,
+              },
+            });
+
+            map.addLayer({
+              id: "accuracy-border",
+
+              type: "line",
+
+              source: "accuracy-area",
+
+              paint: {
+                "line-color": "#2563eb",
+
+                "line-width": 2,
+
+                "line-opacity": 0.7,
+              },
+            });
+
+            const radiusDegrees = accuracy / 111320;
+
+            map.fitBounds(
+              [
+                [longitude - radiusDegrees, latitude - radiusDegrees],
+
+                [longitude + radiusDegrees, latitude + radiusDegrees],
+              ],
+
+              {
+                padding: 70,
+
+                maxZoom: 18,
+
+                duration: 800,
+              },
+            );
+          }
+        });
+
+        window.addEventListener("resize", function () {
+          map.resize();
+        });
+
+        marker.togglePopup();
+      });
+    </script>
+  </body>
+</html>
