@@ -53,7 +53,7 @@
       }
 
       /* =========================
-       STATISTICS
+       DASHBOARD STATISTICS
        ========================= */
 
       .stats {
@@ -407,7 +407,7 @@
         <div class="device-card">
           <h3>📱 Device Types</h3>
 
-          {% if device_statistics %} {% for item in device_statistics %}
+          {% for item in device_statistics %}
 
           <div class="device-row">
             <span> {{ item.device_type }} </span>
@@ -415,11 +415,7 @@
             <span class="device-count"> {{ item.total }} </span>
           </div>
 
-          {% endfor %} {% else %}
-
-          <div class="empty">No device information yet.</div>
-
-          {% endif %}
+          {% endfor %}
         </div>
 
         <!-- BROWSERS -->
@@ -427,7 +423,7 @@
         <div class="device-card">
           <h3>🌐 Browsers</h3>
 
-          {% if browser_statistics %} {% for item in browser_statistics %}
+          {% for item in browser_statistics %}
 
           <div class="device-row">
             <span> {{ item.browser }} </span>
@@ -435,11 +431,7 @@
             <span class="device-count"> {{ item.total }} </span>
           </div>
 
-          {% endfor %} {% else %}
-
-          <div class="empty">No browser information yet.</div>
-
-          {% endif %}
+          {% endfor %}
         </div>
 
         <!-- OPERATING SYSTEMS -->
@@ -447,8 +439,7 @@
         <div class="device-card">
           <h3>💻 Operating Systems</h3>
 
-          {% if operating_system_statistics %} {% for item in
-          operating_system_statistics %}
+          {% for item in operating_system_statistics %}
 
           <div class="device-row">
             <span> {{ item.operating_system }} </span>
@@ -456,16 +447,12 @@
             <span class="device-count"> {{ item.total }} </span>
           </div>
 
-          {% endfor %} {% else %}
-
-          <div class="empty">No operating-system information yet.</div>
-
-          {% endif %}
+          {% endfor %}
         </div>
       </div>
 
       <!-- =========================
-         MAP
+         LOCATION MAP
          ========================= -->
 
       <div class="map-card">
@@ -657,6 +644,7 @@
 
     <script>
 
+
       const locations = [
 
         {% for location in locations %}
@@ -676,18 +664,26 @@
 
             accuracy: {{ location.accuracy }},
 
-            device_type: "{{ location.device_type|default:'Unknown'|escapejs }}",
+            device_type:
+              "{{ location.device_type|default:'Unknown'|escapejs }}",
 
-            operating_system: "{{ location.operating_system|default:'Unknown'|escapejs }}",
+            operating_system:
+              "{{ location.operating_system|default:'Unknown'|escapejs }}",
 
-            browser: "{{ location.browser|default:'Unknown'|escapejs }}",
+            browser:
+              "{{ location.browser|default:'Unknown'|escapejs }}",
 
-            time: "{{ location.device_timestamp|date:'d M Y, H:i:s' }}"
+            time:
+              "{{ location.device_timestamp|date:'d M Y, H:i:s' }}"
           }
 
+
           {% if not forloop.last %}
+
             ,
+
           {% endif %}
+
 
         {% endfor %}
 
@@ -698,41 +694,57 @@
 
 
       /* =========================
-         MAP
+         MAP INITIALIZATION
          ========================= */
 
       if (locations.length > 0) {
+
 
         const latest = locations[0];
 
 
         map = L.map("map").setView(
+
           [
             latest.latitude,
             latest.longitude
           ],
+
           15
+
         );
 
 
         L.tileLayer(
+
           "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+
           {
             maxZoom: 19,
-            attribution: "Tiles &copy; Esri"
+
+            attribution:
+              "Tiles &copy; Esri"
           }
+
         ).addTo(map);
 
 
+        /* =========================
+           MARKERS
+           ========================= */
+
         locations.forEach(
+
           function(location, index) {
 
 
             const marker = L.marker(
+
               [
                 location.latitude,
                 location.longitude
               ]
+
             ).addTo(map);
 
 
@@ -750,6 +762,7 @@
             marker.bindPopup(
 
               `
+
               <strong>
                 📍 ${location.area}
               </strong>
@@ -758,40 +771,48 @@
 
               <br><br>
 
+
               <strong>Device:</strong>
               ${location.device_type}
 
               <br>
+
 
               <strong>Operating System:</strong>
               ${location.operating_system}
 
               <br>
 
+
               <strong>Browser:</strong>
               ${location.browser}
 
               <br><br>
+
 
               <strong>County:</strong>
               ${location.county}
 
               <br>
 
+
               <strong>Country:</strong>
               ${location.country}
 
               <br>
+
 
               <strong>Latitude:</strong>
               ${location.latitude.toFixed(7)}
 
               <br>
 
+
               <strong>Longitude:</strong>
               ${location.longitude.toFixed(7)}
 
               <br>
+
 
               <strong>Accuracy:</strong>
               ${Math.round(location.accuracy)}
@@ -799,51 +820,78 @@
 
               <br>
 
+
               <strong>Time:</strong>
               ${location.time}
+
               `
 
             );
 
 
+            /* =========================
+               ACCURACY CIRCLE
+               ========================= */
+
             L.circle(
+
               [
                 location.latitude,
                 location.longitude
               ],
+
               {
                 radius: location.accuracy,
+
                 fillOpacity: 0.08,
+
                 weight: 1
               }
+
             ).addTo(map);
 
 
           }
+
         );
 
 
+        /* =========================
+           LOCATION PATH
+           ========================= */
+
         if (locations.length > 1) {
 
+
           const coordinates =
+
             locations.map(
+
               function(location) {
 
                 return [
+
                   location.latitude,
+
                   location.longitude
+
                 ];
 
               }
+
             );
 
 
           L.polyline(
+
             coordinates,
+
             {
               weight: 4
             }
+
           ).addTo(map);
+
 
         }
 
@@ -851,30 +899,50 @@
       } else {
 
 
+        /* =========================
+           EMPTY MAP
+           ========================= */
+
         map = L.map("map").setView(
-          [-0.68, 34.79],
+
+          [
+            -0.68,
+            34.79
+          ],
+
           12
+
         );
 
 
         L.tileLayer(
+
           "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+
           {
             maxZoom: 19,
-            attribution: "Tiles &copy; Esri"
+
+            attribution:
+              "Tiles &copy; Esri"
           }
+
         ).addTo(map);
+
 
       }
 
 
       /* =========================
-         IDLE LOGOUT
+         ONE MINUTE IDLE LOGOUT
          ========================= */
 
-      const IDLE_LIMIT = 60 * 1000;
+      const IDLE_LIMIT =
+        60 * 1000;
 
-      const WARNING_TIME = 10 * 1000;
+
+      const WARNING_TIME =
+        10 * 1000;
+
 
       let idleTimer;
 
@@ -883,38 +951,53 @@
 
       function resetIdleTimer() {
 
+
         clearTimeout(idleTimer);
 
         clearTimeout(warningTimer);
 
 
         const warning =
-          document.getElementById("idleWarning");
+          document.getElementById(
+            "idleWarning"
+          );
 
 
-        warning.style.display = "none";
+        warning.style.display =
+          "none";
 
 
         warningTimer = setTimeout(
+
           function() {
 
-            warning.style.display = "block";
+            warning.style.display =
+              "block";
 
           },
-          IDLE_LIMIT - WARNING_TIME
+
+          IDLE_LIMIT -
+          WARNING_TIME
+
         );
 
 
         idleTimer = setTimeout(
+
           function() {
 
             document
-              .getElementById("logoutForm")
+              .getElementById(
+                "logoutForm"
+              )
               .submit();
 
           },
+
           IDLE_LIMIT
+
         );
+
 
       }
 
@@ -927,15 +1010,23 @@
         "scroll",
         "click"
       ].forEach(
+
         function(eventName) {
 
+
           document.addEventListener(
+
             eventName,
+
             resetIdleTimer,
+
             true
+
           );
 
+
         }
+
       );
 
 
